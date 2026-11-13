@@ -1,0 +1,68 @@
+/* Mọi class đều có tiền tố .ua- để không đụng CSS khác trong dự án */
+.ua-page{
+  --ua-ink:#0d0d0d; --ua-paper:#fff; --ua-muted:#6b6b6b; --ua-line:#e3e3e3; --ua-field:#f6f6f4;
+  --ua-gold:#f5b800; --ua-gold-press:#dba400; --ua-err:#c62828;
+  min-height:100vh; display:grid; grid-template-columns:minmax(320px,5fr) 7fr;
+  font-family:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  background:var(--ua-paper); color:var(--ua-ink); -webkit-font-smoothing:antialiased;
+}
+.ua-page *,.ua-page *::before,.ua-page *::after{box-sizing:border-box}
+@media (prefers-color-scheme:dark){
+  .ua-page{--ua-ink:#f4f4f2;--ua-paper:#121212;--ua-muted:#9a9a9a;--ua-line:#2e2e2e;--ua-field:#1b1b1b;--ua-err:#ff6b6b}
+  .ua-mlogo{filter:invert(1)}
+}
+
+/* Bảng thương hiệu */
+.ua-brand{background:#0d0d0d;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:40px;padding:48px}
+.ua-brand img{height:min(30vh,190px);width:auto}
+.ua-brand h2{margin:0 0 12px;font-size:clamp(22px,2.2vw,30px);line-height:1.25;font-weight:700;letter-spacing:-.01em}
+.ua-brand p{margin:0 auto;color:#b5b5b5;font-size:15px;line-height:1.6;max-width:32ch}
+.ua-bar{width:48px;height:4px;background:var(--ua-gold);margin:0 auto 24px;border-radius:2px}
+
+/* Khu form */
+.ua-panel{display:flex;align-items:center;justify-content:center;padding:40px 24px}
+.ua-card{width:100%;max-width:400px}
+.ua-mlogo{display:none;height:48px;margin-bottom:28px}
+.ua-tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--ua-line);margin-bottom:32px}
+.ua-tab{display:block;text-align:center;text-decoration:none;padding:12px 0;font-size:15px;font-weight:600;font-family:inherit;color:var(--ua-muted);cursor:pointer;position:relative}
+.ua-tab[aria-selected="true"]{color:var(--ua-ink)}
+.ua-tab[aria-selected="true"]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:var(--ua-gold)}
+.ua-card h1{margin:0 0 6px;font-size:26px;font-weight:700;letter-spacing:-.01em}
+.ua-sub{margin:0 0 24px;color:var(--ua-muted);font-size:14px}
+
+.ua-field{margin-bottom:16px}
+.ua-field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+.ua-inp{position:relative}
+.ua-field input{width:100%;height:46px;padding:0 14px;border:1.5px solid transparent;border-radius:8px;background:var(--ua-field);color:var(--ua-ink);font-size:15px;font-family:inherit;outline:none;transition:border-color .15s,background .15s}
+.ua-field input::placeholder{color:#9b9b9b}
+.ua-field input:focus{border-color:var(--ua-gold);background:var(--ua-paper)}
+.ua-field input[aria-invalid="true"]{border-color:var(--ua-err)}
+.ua-err{display:block;color:var(--ua-err);font-size:12.5px;margin-top:4px}
+.ua-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;padding:8px;cursor:pointer;color:var(--ua-muted);font-size:12.5px;font-weight:500;font-family:inherit}
+.ua-eye:hover{color:var(--ua-ink)}
+.ua-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ua-meta{display:flex;justify-content:flex-end;margin:-4px 0 20px}
+.ua-link{color:var(--ua-ink);font-size:13px;font-weight:600;text-decoration:underline;text-decoration-color:var(--ua-gold);text-decoration-thickness:2px;text-underline-offset:3px}
+
+.ua-btn{width:100%;height:48px;border:0;border-radius:8px;background:var(--ua-gold);color:#0d0d0d;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:background .15s}
+.ua-btn:hover:not(:disabled){background:var(--ua-gold-press)}
+.ua-btn:active:not(:disabled){transform:translateY(1px)}
+.ua-btn:disabled{opacity:.6;cursor:not-allowed}
+.ua-alert{margin-bottom:14px;padding:11px 14px;border-radius:8px;border:1.5px solid var(--ua-err);color:var(--ua-err);font-size:13.5px}
+
+.ua-or{display:flex;align-items:center;gap:12px;color:var(--ua-muted);font-size:13px;margin:22px 0}
+.ua-or::before,.ua-or::after{content:"";flex:1;height:1px;background:var(--ua-line)}
+.ua-social{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ua-sbtn{height:46px;border:1.5px solid var(--ua-line);border-radius:8px;background:transparent;color:var(--ua-ink);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.ua-sbtn:hover{border-color:var(--ua-ink)}
+.ua-sbtn svg{width:18px;height:18px}
+.ua-foot{margin:24px 0 0;text-align:center;font-size:13.5px;color:var(--ua-muted)}
+.ua-foot a{font-size:13.5px;font-weight:600;color:var(--ua-ink);text-decoration:underline;text-decoration-color:var(--ua-gold);text-decoration-thickness:2px;text-underline-offset:3px}
+.ua-page :focus-visible{outline:2px solid var(--ua-gold);outline-offset:2px}
+
+@media (max-width:860px){
+  .ua-page{grid-template-columns:1fr}
+  .ua-brand{display:none}
+  .ua-mlogo{display:block}
+  .ua-panel{align-items:flex-start;padding-top:32px}
+}
