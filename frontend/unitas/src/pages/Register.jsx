@@ -43,7 +43,6 @@ export default function Register() {
   };
 
   return (
-    <AuthLayout mode="register" title="Tạo tài khoản" subtitle="Vài thông tin để bắt đầu cùng phòng của bạn.">
       <form onSubmit={submit} noValidate>
         <Field id="r-name" name="name" label="Họ và tên" autoComplete="name"
           placeholder="Nguyễn Văn A" value={values.name} onChange={change} error={errors.name} />
@@ -65,6 +64,5 @@ export default function Register() {
           {loading ? 'Đang tạo tài khoản…' : 'Tạo tài khoản'}
         </button>
       </form>
-    </AuthLayout>
   );
 }

@@ -13,7 +13,7 @@
 }
 
 /* Bảng thương hiệu */
-.ua-brand{background:#0d0d0d;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:40px;padding:48px}
+.ua-brand{position:sticky;top:0;align-self:start;height:100vh;height:100dvh;background:#0d0d0d;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:40px;padding:48px}
 .ua-brand img{height:min(30vh,190px);width:auto}
 .ua-brand h2{margin:0 0 12px;font-size:clamp(22px,2.2vw,30px);line-height:1.25;font-weight:700;letter-spacing:-.01em}
 .ua-brand p{margin:0 auto;color:#b5b5b5;font-size:15px;line-height:1.6;max-width:32ch}
@@ -23,11 +23,9 @@
 .ua-panel{display:flex;align-items:center;justify-content:center;padding:40px 24px}
 .ua-card{width:100%;max-width:400px}
 .ua-mlogo{display:none;height:48px;margin-bottom:28px}
-.ua-tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--ua-line);margin-bottom:32px}
-.ua-tab{display:block;text-align:center;text-decoration:none;padding:12px 0;font-size:15px;font-weight:600;font-family:inherit;color:var(--ua-muted);cursor:pointer;position:relative}
+.ua-tabs{position:relative;display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--ua-line);margin-bottom:32px}.ua-tab{display:block;text-align:center;text-decoration:none;padding:12px 0;font-size:15px;font-weight:600;font-family:inherit;color:var(--ua-muted);cursor:pointer;position:relative}
 .ua-tab[aria-selected="true"]{color:var(--ua-ink)}
-.ua-tab[aria-selected="true"]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:var(--ua-gold)}
-.ua-card h1{margin:0 0 6px;font-size:26px;font-weight:700;letter-spacing:-.01em}
+.ua-ind{position:absolute;left:0;bottom:-1px;width:50%;height:3px;background:var(--ua-gold);transition:transform .35s cubic-bezier(.4,0,.2,1)}.ua-card h1{margin:0 0 6px;font-size:26px;font-weight:700;letter-spacing:-.01em}
 .ua-sub{margin:0 0 24px;color:var(--ua-muted);font-size:14px}
 
 .ua-field{margin-bottom:16px}
@@ -65,4 +63,14 @@
   .ua-brand{display:none}
   .ua-mlogo{display:block}
   .ua-panel{align-items:flex-start;padding-top:32px}
+}
+
+/* Chuyển động khi đổi giữa Đăng nhập và Đăng ký */
+@keyframes ua-from-right{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@keyframes ua-from-left{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+.ua-enter-right{animation:ua-from-right .4s cubic-bezier(.2,.7,.2,1) both}
+.ua-enter-left{animation:ua-from-left .4s cubic-bezier(.2,.7,.2,1) both}
+@media (prefers-reduced-motion:reduce){
+  .ua-enter-right,.ua-enter-left{animation:none}
+  .ua-ind{transition:none}
 }
