@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AuthLayout from '../components/AuthLayout';
 import Field from '../components/Field';
 import { validateLogin } from '../utils/validators';
 import { login } from '../services/authApi';
@@ -37,12 +36,11 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout mode="login" title="Chào mừng trở lại" subtitle="Đăng nhập để vào phòng của bạn.">
-      <form onSubmit={submit} noValidate>
-        <Field id="l-email" name="email" label="Email" type="email" autoComplete="email"
-          placeholder="ten@email.com" value={values.email} onChange={change} error={errors.email} />
-        <Field id="l-pass" name="password" label="Mật khẩu" type="password" autoComplete="current-password"
-          placeholder="Nhập mật khẩu" value={values.password} onChange={change} error={errors.password} />
+    <form onSubmit={submit} noValidate>
+      <Field id="l-email" name="email" label="Email" type="email" autoComplete="email"
+        placeholder="ten@email.com" value={values.email} onChange={change} error={errors.email} />
+      <Field id="l-pass" name="password" label="Mật khẩu" type="password" autoComplete="current-password"
+        placeholder="Nhập mật khẩu" value={values.password} onChange={change} error={errors.password} />
 
         <div className="ua-meta"><a className="ua-link" href="/forgot-password">Quên mật khẩu?</a></div>
 
@@ -51,6 +49,5 @@ export default function Login() {
           {loading ? 'Đang đăng nhập…' : 'Đăng nhập'}
         </button>
       </form>
-    </AuthLayout>
   );
 }
