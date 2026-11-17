@@ -3,36 +3,51 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_REGEX = /^(0|\+84)[3-9]\d{8}$/;
-const USERNAME_REGEX = /^[a-z0-9_]{3,30}$/;
+const PHONE_REGEX = /^(0|\+84)\d{9}$/;
+const USERNAME_REGEX = /^[a-z0-9_.]{4,30}$/;
+
+const isProd = process.env.NODE_ENV === "production";
+const baseCookie = {
+  httpOnly: true,
+  secure: isProd,
+  sameSite: isProd ? "none" : "lax",
+};
+const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 
 const signToken = (userId) =>
   jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
 const clean = (value) => String(value ?? "").trim();
 
+// Gửi cookie đăng nhập và trả luôn token trong body
+const sendAuth = (res, status, message, user) => {
+  const token = signToken(user._id);
+  res.cookie("token", token, { ...baseCookie, maxAge: SEVEN_DAYS });
+  return res.status(status).json({ message, user, token });
+};
+
 export const register = async (req, res) => {
   const body = req.body ?? {};
-  const fullName = clean(body.fullName);
+  const fullName = clean(body.fullName ?? body.name);
   const email = clean(body.email).toLowerCase();
-  const phone = clean(body.phone).replace(/[\s.-]/g, "");
+  const phone = clean(body.phone).replace(/\s/g, "");
   const username = clean(body.username).toLowerCase();
   const password = String(body.password ?? "");
-  const confirmPassword = String(body.confirmPassword ?? "");
+  const confirmPassword = String(body.confirmPassword ?? body.password2 ?? "");
 
   const errors = {};
-  if (fullName.length < 2) errors.fullName = "Vui lòng nhập họ và tên";
-  if (!EMAIL_REGEX.test(email)) errors.email = "Email không hợp lệ";
-  if (!PHONE_REGEX.test(phone)) errors.phone = "Số điện thoại không hợp lệ";
+  if (fullName.length < 2) errors.fullName = "Họ và tên tối thiểu 2 ký tự";
+  if (!EMAIL_REGEX.test(email)) errors.email = "Email không đúng định dạng";
+  if (!PHONE_REGEX.test(phone))
+    errors.phone = "Số điện thoại không đúng định dạng";
   if (!USERNAME_REGEX.test(username))
-    errors.username =
-      "Tên đăng nhập 3-30 ký tự, chỉ gồm chữ thường, số và dấu gạch dưới";
+    errors.username = "Tên đăng nhập 4-30 ký tự, chỉ gồm chữ, số, _ hoặc .";
   if (password.length < 8) errors.password = "Mật khẩu tối thiểu 8 ký tự";
   if (confirmPassword && confirmPassword !== password)
     errors.confirmPassword = "Mật khẩu nhập lại không khớp";
 
   if (Object.keys(errors).length > 0) {
-    return res.status(400).json({ message: "Dữ liệu không hợp lệ", errors });
+    return res.status(400).json({ message: Object.values(errors)[0], errors });
   }
 
   const existing = await User.findOne({ $or: [{ email }, { username }] });
@@ -55,13 +70,7 @@ export const register = async (req, res) => {
       username,
       password: hashed,
     });
-    return res
-      .status(201)
-      .json({
-        message: "Đăng ký thành công",
-        user,
-        token: signToken(user._id),
-      });
+    return sendAuth(res, 201, "Đăng ký thành công", user);
   } catch (err) {
     if (err.code === 11000) {
       return res
@@ -88,11 +97,12 @@ export const login = async (req, res) => {
     return res.status(401).json({ message: "Email hoặc mật khẩu không đúng" });
   }
 
-  return res.json({
-    message: "Đăng nhập thành công",
-    user,
-    token: signToken(user._id),
-  });
+  return sendAuth(res, 200, "Đăng nhập thành công", user);
+};
+
+export const logout = (req, res) => {
+  res.clearCookie("token", baseCookie);
+  res.json({ message: "Đã đăng xuất" });
 };
 
 export const getMe = (req, res) => {
