@@ -1,28 +1,19 @@
+import crypto from "crypto";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import { setAuthCookie, cookieOptions } from "../utils/token.js";
+import { sendEmail } from "../utils/sendEmail.js";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^(0|\+84)\d{9}$/;
 const USERNAME_REGEX = /^[a-z0-9_.]{4,30}$/;
 
-const isProd = process.env.NODE_ENV === "production";
-const baseCookie = {
-  httpOnly: true,
-  secure: isProd,
-  sameSite: isProd ? "none" : "lax",
-};
-const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
-
-const signToken = (userId) =>
-  jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
-
 const clean = (value) => String(value ?? "").trim();
+const sha256 = (value) =>
+  crypto.createHash("sha256").update(value).digest("hex");
 
-// Gửi cookie đăng nhập và trả luôn token trong body
 const sendAuth = (res, status, message, user) => {
-  const token = signToken(user._id);
-  res.cookie("token", token, { ...baseCookie, maxAge: SEVEN_DAYS });
+  const token = setAuthCookie(res, user._id);
   return res.status(status).json({ message, user, token });
 };
 
@@ -90,9 +81,10 @@ export const login = async (req, res) => {
   }
 
   const user = await User.findOne({ email }).select("+password");
-  const ok = user && (await bcrypt.compare(password, user.password));
+  // Tài khoản tạo bằng Google/Facebook có thể chưa có mật khẩu
+  const ok =
+    user && user.password && (await bcrypt.compare(password, user.password));
 
-  // Cùng một thông báo cho cả hai trường hợp, để không lộ email nào đã đăng ký
   if (!ok) {
     return res.status(401).json({ message: "Email hoặc mật khẩu không đúng" });
   }
@@ -101,10 +93,81 @@ export const login = async (req, res) => {
 };
 
 export const logout = (req, res) => {
-  res.clearCookie("token", baseCookie);
+  res.clearCookie("token", cookieOptions);
   res.json({ message: "Đã đăng xuất" });
 };
 
 export const getMe = (req, res) => {
   res.json({ user: req.user });
+};
+
+export const forgotPassword = async (req, res) => {
+  const email = clean(req.body?.email).toLowerCase();
+  if (!EMAIL_REGEX.test(email)) {
+    return res.status(400).json({ message: "Email không đúng định dạng" });
+  }
+
+  // Luôn trả cùng một thông báo dù email có tồn tại hay không
+  const message =
+    "Nếu email đã đăng ký, chúng tôi đã gửi hướng dẫn đặt lại mật khẩu";
+
+  const user = await User.findOne({ email });
+  if (user) {
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordToken = sha256(rawToken);
+    user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
+    await user.save();
+
+    const link = `${process.env.CLIENT_URL}/reset-password?token=${rawToken}`;
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "Đặt lại mật khẩu Unitas",
+        text: `Bạn vừa yêu cầu đặt lại mật khẩu Unitas. Mở liên kết sau trong vòng 15 phút:\n${link}\n\nNếu không phải bạn, hãy bỏ qua email này.`,
+        html: `<p>Bạn vừa yêu cầu đặt lại mật khẩu Unitas.</p><p><a href="${link}">Bấm vào đây để đặt lại mật khẩu</a> (hiệu lực 15 phút).</p><p>Nếu không phải bạn, hãy bỏ qua email này.</p>`,
+      });
+    } catch (err) {
+      console.error("Gửi email thất bại:", err.message);
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+      await user.save();
+    }
+  }
+
+  return res.json({ message });
+};
+
+export const resetPassword = async (req, res) => {
+  const token = clean(req.body?.token);
+  const password = String(req.body?.password ?? "");
+
+  if (!token) {
+    return res
+      .status(400)
+      .json({ message: "Liên kết đặt lại mật khẩu không hợp lệ" });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ message: "Mật khẩu tối thiểu 8 ký tự" });
+  }
+
+  const user = await User.findOne({
+    resetPasswordToken: sha256(token),
+    resetPasswordExpires: { $gt: new Date() },
+  });
+  if (!user) {
+    return res
+      .status(400)
+      .json({
+        message: "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn",
+      });
+  }
+
+  user.password = await bcrypt.hash(password, 10);
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+  await user.save();
+
+  return res.json({
+    message: "Đặt lại mật khẩu thành công, hãy đăng nhập lại",
+  });
 };

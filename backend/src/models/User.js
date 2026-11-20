@@ -16,25 +16,32 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    phone: { type: String, required: true, trim: true },
+    phone: { type: String, trim: true, default: "" },
     username: {
       type: String,
       required: true,
       unique: true,
       lowercase: true,
       trim: true,
-      minlength: 3,
+      minlength: 4,
       maxlength: 30,
     },
-    password: { type: String, required: true, select: false },
+    password: { type: String, select: false },
+    avatar: { type: String, default: "" },
+    googleId: { type: String, unique: true, sparse: true },
+    facebookId: { type: String, unique: true, sparse: true },
+    resetPasswordToken: { type: String, select: false },
+    resetPasswordExpires: { type: Date, select: false },
   },
   { timestamps: true },
 );
 
-// Khi trả user về cho frontend: không bao giờ kèm mật khẩu
+// Khi trả user về cho frontend: không bao giờ kèm các trường bí mật
 userSchema.set("toJSON", {
   transform: (doc, ret) => {
     delete ret.password;
+    delete ret.resetPasswordToken;
+    delete ret.resetPasswordExpires;
     delete ret.__v;
     return ret;
   },
