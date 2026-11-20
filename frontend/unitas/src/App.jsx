@@ -1,16 +1,24 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import AuthLayout from './components/AuthLayout';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Home from './pages/Home';
+import { Routes, Route, Navigate } from "react-router-dom";
+import AuthLayout from "./components/AuthLayout";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Home from "./pages/Home";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 export default function App() {
   return (
     <Routes>
+      {/* Đăng nhập / Đăng ký dùng chung khung AuthLayout (có hai tab) */}
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Route>
+
+      {/* Quên mật khẩu / Đặt lại mật khẩu: trang riêng, tự có bố cục hai nửa */}
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+
       <Route path="/" element={<Home />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
