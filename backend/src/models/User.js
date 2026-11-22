@@ -32,6 +32,18 @@ const userSchema = new mongoose.Schema(
     facebookId: { type: String, unique: true, sparse: true },
     resetPasswordToken: { type: String, select: false },
     resetPasswordExpires: { type: Date, select: false },
+
+    // Phòng đang ở (mỗi người một phòng)
+    roomJoined: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Room",
+      default: null,
+    },
+    roleInRoom: {
+      type: String,
+      enum: ["TREASURER", "MEMBER", "NONE"],
+      default: "NONE",
+    },
   },
   { timestamps: true },
 );

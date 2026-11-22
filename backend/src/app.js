@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
+import roomRoutes from "./modules/room/roomRoutes.js";
+import { protect } from "./middleware/auth.js";
 
 const app = express();
 
@@ -19,6 +21,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/rooms", protect, roomRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Không tìm thấy đường dẫn" });
