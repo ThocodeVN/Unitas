@@ -7,8 +7,6 @@ import {
   rejectMember,
   transferTreasurer,
   leaveRoom,
-  mockSetRole,
-  IS_MOCK,
 } from "../services/roomApi";
 
 const ROLE_LABEL = {
@@ -119,40 +117,8 @@ export default function RoomView({ room, user, onChange, onLeft }) {
     setDialog(null);
   };
 
-  const switchRole = async (role) => {
-    if (role === myRole) return;
-    setBusy(true);
-    setError("");
-    try {
-      onChange(await mockSetRole(role));
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
     <>
-      {IS_MOCK && (
-        <div className="db-demo">
-          <span>Chế độ thử: xem giao diện với vai trò</span>
-          <div className="db-seg" role="group" aria-label="Vai trò">
-            {["TREASURER", "MEMBER"].map((role) => (
-              <button
-                key={role}
-                type="button"
-                className={`db-seg-btn ${myRole === role ? "is-active" : ""}`}
-                disabled={busy}
-                onClick={() => switchRole(role)}
-              >
-                {ROLE_LABEL[role]}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       <section className="db-hero">
         <p className="db-eyebrow">Phòng của bạn</p>
         <h1 className="db-title">{room.roomName}</h1>

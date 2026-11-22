@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  cancelJoin,
-  getMyRoom,
-  mockApprovePending,
-  IS_MOCK,
-} from "../services/roomApi";
+import { cancelJoin, getMyRoom } from "../services/roomApi";
 
 export default function PendingView({ pending, onCancelled, onApproved }) {
   const [busy, setBusy] = useState("");
@@ -38,11 +33,6 @@ export default function PendingView({ pending, onCancelled, onApproved }) {
       }
       setInfo("Thủ quỹ chưa duyệt yêu cầu của bạn. Hãy thử lại sau.");
       setBusy("");
-    });
-
-  const simulate = () =>
-    run("sim", async () => {
-      onApproved(await mockApprovePending());
     });
 
   return (
@@ -98,20 +88,6 @@ export default function PendingView({ pending, onCancelled, onApproved }) {
           {busy === "cancel" ? "Đang hủy…" : "Hủy yêu cầu"}
         </button>
       </div>
-
-      {IS_MOCK && (
-        <div className="db-demo db-demo--box">
-          <span>Chế độ thử</span>
-          <button
-            className="db-btn db-btn--ghost db-btn--sm"
-            type="button"
-            disabled={!!busy}
-            onClick={simulate}
-          >
-            Giả lập thủ quỹ đã duyệt
-          </button>
-        </div>
-      )}
     </div>
   );
 }

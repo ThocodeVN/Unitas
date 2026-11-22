@@ -6,8 +6,7 @@ import RoomSetup from "../components/RoomSetup";
 import RoomView from "../components/RoomView";
 import UserMenu from "../components/UserMenu";
 import { getMe, logout } from "../services/authApi";
-import { applyLocalProfile } from "../services/profileApi";
-import { getMyRoom, IS_MOCK } from "../services/roomApi";
+import { getMyRoom } from "../services/roomApi";
 import "../styles/dashboard.css";
 
 const JOIN_KEY = "unitas_join_code";
@@ -39,7 +38,7 @@ export default function Home() {
   const [room, setRoom] = useState(null);
   const [pending, setPending] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
@@ -49,7 +48,7 @@ export default function Home() {
     (async () => {
       let me;
       try {
-        me = applyLocalProfile(await getMe());
+        me = await getMe();
       } catch {
         // Chưa đăng nhập hoặc phiên đã hết hạn
         if (alive) navigate("/login", { replace: true });
@@ -63,7 +62,9 @@ export default function Home() {
           setPending(data.pending);
         }
       } catch (err) {
-        if (alive) setError(err.message);
+        // 404: backend chưa có API phòng
+        if (alive)
+          setError({ message: err.message, unavailable: err.status === 404 });
       }
 
       if (alive) {
@@ -83,7 +84,7 @@ export default function Home() {
   }, [room, pending]);
 
   const retry = () => {
-    setError("");
+    setError(null);
     setLoading(true);
     setAttempt((n) => n + 1);
   };
@@ -111,12 +112,27 @@ export default function Home() {
       ?.roleInRoom || null;
 
   let content;
-  if (error) {
+  if (error?.unavailable) {
+    content = (
+      <div className="db-card db-pending">
+        <h1 className="db-card-title db-card-title--lg">
+          Tính năng phòng đang được hoàn thiện
+        </h1>
+        <p className="db-card-sub">
+          Việc tạo phòng, tham gia phòng và quản lý quỹ chung sẽ sớm có mặt. Bạn
+          vẫn có thể dùng menu ở góc phải để xem hồ sơ hoặc đăng xuất.
+        </p>
+        <button className="db-btn" type="button" onClick={retry}>
+          Thử lại
+        </button>
+      </div>
+    );
+  } else if (error) {
     content = (
       <div className="db-card">
         <h2 className="db-card-title">Không tải được thông tin phòng</h2>
         <div className="db-alert" role="alert">
-          {error}
+          {error.message}
         </div>
         <button className="db-btn" type="button" onClick={retry}>
           Thử lại
@@ -153,7 +169,6 @@ export default function Home() {
           <div className="db-brand">
             <img src={logo} alt="" />
             <span>Unitas</span>
-            {IS_MOCK && <span className="db-tag">Dữ liệu thử</span>}
           </div>
           <UserMenu
             user={user}

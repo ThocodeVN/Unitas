@@ -1,7 +1,4 @@
 const BASE_URL = import.meta.env.VITE_API_URL || "/api";
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
-
-const avatarKey = (user) => `unitas_mock_avatar_${user._id}`;
 
 // Ảnh có sẵn: hình tròn màu kèm biểu tượng, tạo bằng SVG nên không cần tệp ảnh
 const svgAvatar = (emoji, bg) => {
@@ -66,22 +63,8 @@ export function fileToAvatar(file, size = 256) {
   });
 }
 
-// Dữ liệu giả: ảnh đã đổi được lưu trong trình duyệt, ghép vào thông tin người dùng
-export function applyLocalProfile(user) {
-  if (!USE_MOCK) return user;
-  const stored = localStorage.getItem(avatarKey(user));
-  return stored === null ? user : { ...user, avatar: stored };
-}
-
-// Lưu ảnh đại diện, trả về người dùng đã cập nhật
-export async function saveAvatar(user, avatar) {
-  if (USE_MOCK) {
-    localStorage.setItem(avatarKey(user), avatar);
-    await new Promise((resolve) => setTimeout(resolve, 250));
-    return { ...user, avatar };
-  }
-
-  // API thật (backend cần có PATCH /api/auth/me)
+// Lưu ảnh đại diện, trả về người dùng đã cập nhật (cần backend có PATCH /api/auth/me)
+export async function saveAvatar(_user, avatar) {
   const res = await fetch(`${BASE_URL}/auth/me`, {
     method: "PATCH",
     credentials: "include",
@@ -89,6 +72,12 @@ export async function saveAvatar(user, avatar) {
     body: JSON.stringify({ avatar }),
   });
   const data = await res.json().catch(() => ({}));
+
+  if (res.status === 404) {
+    throw new Error(
+      "Máy chủ chưa hỗ trợ đổi ảnh đại diện. Tính năng sẽ có khi backend hoàn thiện.",
+    );
+  }
   if (!res.ok) throw new Error(data.message || "Không lưu được ảnh đại diện");
   return data.user;
 }
