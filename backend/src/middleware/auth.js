@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import { getJwtSecret } from "../utils/token.js";
 
 export const protect = async (req, res, next) => {
   const header = req.headers.authorization || "";
@@ -12,7 +13,7 @@ export const protect = async (req, res, next) => {
   }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const payload = jwt.verify(token, getJwtSecret());
     const user = await User.findById(payload.id);
     if (!user) {
       return res.status(401).json({ message: "Tài khoản không tồn tại" });

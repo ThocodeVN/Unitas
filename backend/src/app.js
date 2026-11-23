@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
+import { getJwtSecret } from "./utils/token.js";
+
+getJwtSecret();
 
 const app = express();
 
