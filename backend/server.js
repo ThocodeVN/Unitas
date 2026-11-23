@@ -1,20 +1,16 @@
-import express from "express";
-import { connectDB } from "./config/db.js";
-import dotenv from "dotenv";
-import roomRouter from "./modules/room/roomRoutes.js";
+import "dotenv/config";
+import mongoose from "mongoose";
+import app from "./src/app.js";
 
-dotenv.config();
+const PORT = process.env.PORT || 5000;
 
-const PORT = process.env.PORT || 5001;
-
-const app = express();
-
-// middlewares
-app.use(express.json());
-app.use("/api/rooms", roomRouter);
-
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`server bắt đầu trên cổng ${PORT}`);
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("Đã kết nối MongoDB");
+    app.listen(PORT, () => console.log(`Server chạy tại cổng ${PORT}`));
+  })
+  .catch((err) => {
+    console.error("Lỗi kết nối DB:", err.message);
+    process.exit(1);
   });
-});
