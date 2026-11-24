@@ -171,21 +171,77 @@ export const resetPassword = async (req, res) => {
 };
 const AVATAR_REGEX = /^data:image\/(jpeg|png|webp|svg\+xml)[;,]/;
 
-// PATCH /api/auth/me { avatar } -> { user }
+// PATCH /api/auth/me { fullName?, phone?, username?, avatar? } -> { user }
+// Chỉ cập nhật những trường được gửi lên; trường không gửi giữ nguyên.
+// Email không đổi ở đây (cần xác minh email riêng).
 export const updateMe = async (req, res) => {
   const user = req.user;
-  const avatar = String(req.body?.avatar ?? "");
+  const body = req.body ?? {};
+  const errors = {};
+  const updates = {};
 
-  if (avatar !== "" && !AVATAR_REGEX.test(avatar)) {
-    return res.status(400).json({ message: "Ảnh đại diện không hợp lệ" });
-  }
-  if (avatar.length > 300000) {
-    return res.status(400).json({ message: "Ảnh đại diện quá lớn" });
+  if (body.fullName !== undefined) {
+    const fullName = clean(body.fullName);
+    if (fullName.length < 2 || fullName.length > 100)
+      errors.fullName = "Họ và tên từ 2 đến 100 ký tự";
+    else updates.fullName = fullName;
   }
 
-  user.avatar = avatar;
-  await user.save();
-  return res.json({ message: "Đã cập nhật ảnh đại diện", user });
+  if (body.phone !== undefined) {
+    // Tài khoản Google/Facebook có thể chưa có số điện thoại nên cho phép để trống
+    const phone = clean(body.phone).replace(/\s/g, "");
+    if (phone !== "" && !PHONE_REGEX.test(phone))
+      errors.phone = "Số điện thoại không đúng định dạng";
+    else updates.phone = phone;
+  }
+
+  if (body.username !== undefined) {
+    const username = clean(body.username).toLowerCase();
+    if (!USERNAME_REGEX.test(username))
+      errors.username = "Tên đăng nhập 4-30 ký tự, chỉ gồm chữ, số, _ hoặc .";
+    else if (username !== user.username) updates.username = username;
+  }
+
+  if (body.avatar !== undefined) {
+    const avatar = String(body.avatar ?? "");
+    if (avatar !== "" && !AVATAR_REGEX.test(avatar))
+      errors.avatar = "Ảnh đại diện không hợp lệ";
+    else if (avatar.length > 300000) errors.avatar = "Ảnh đại diện quá lớn";
+    else updates.avatar = avatar;
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json({ message: Object.values(errors)[0], errors });
+  }
+  if (Object.keys(updates).length === 0) {
+    return res.json({ message: "Không có thay đổi nào", user });
+  }
+
+  if (
+    updates.username &&
+    (await User.exists({ username: updates.username, _id: { $ne: user._id } }))
+  ) {
+    const text = "Tên đăng nhập đã được sử dụng";
+    return res.status(409).json({ message: text, errors: { username: text } });
+  }
+
+  Object.assign(user, updates);
+  try {
+    await user.save();
+  } catch (err) {
+    // Hai người cùng lấy một username trong cùng lúc: index unique chặn lại
+    if (err?.code === 11000 && err?.keyPattern?.username) {
+      const text = "Tên đăng nhập đã được sử dụng";
+      return res.status(409).json({ message: text, errors: { username: text } });
+    }
+    throw err;
+  }
+
+  const onlyAvatar = Object.keys(updates).every((k) => k === "avatar");
+  return res.json({
+    message: onlyAvatar ? "Đã cập nhật ảnh đại diện" : "Đã cập nhật hồ sơ",
+    user,
+  });
 };
 // PATCH /api/auth/password { currentPassword, newPassword }
 export const changePassword = async (req, res) => {
