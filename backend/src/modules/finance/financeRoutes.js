@@ -11,6 +11,7 @@ import {
   createExpense,
   deleteExpense,
 } from "./expenseController.js";
+import { getStats } from "./statsController.js";
 
 const router = Router();
 
@@ -23,5 +24,7 @@ router.post("/contributions/:id/payments/:userId/confirm", confirmPayment);
 router.get("/expenses", listExpenses);
 router.post("/expenses", createExpense);
 router.delete("/expenses/:id", deleteExpense);
+
+router.get("/stats", getStats);
 
 export default router;
