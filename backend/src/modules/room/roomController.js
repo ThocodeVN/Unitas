@@ -119,6 +119,37 @@ export async function getMyRoom(req, res) {
   });
 }
 
+// GET /api/rooms/dashboard -> real dashboard totals available from the room model
+export async function getDashboardSummary(req, res) {
+  const user = req.user;
+  if (user.roleInRoom !== "TREASURER") {
+    return res
+      .status(403)
+      .json({ message: "Chỉ thủ quỹ mới được xem bảng tổng quan quản lý" });
+  }
+  if (!user.roomJoined) {
+    return res.status(404).json({ message: "Bạn chưa ở trong phòng nào" });
+  }
+
+  const room = await loadRoom(user.roomJoined, user._id);
+  if (!room) {
+    return res.status(404).json({ message: "Không tìm thấy phòng" });
+  }
+
+  return res.json({
+    roomName: room.roomName,
+    fundBalance: room.fundBalance,
+    memberCount: room.listMember.length,
+    pendingMemberCount: room.pendingMembers?.length ?? 0,
+    // These modules do not have persisted records yet; null keeps the UI from
+    // presenting missing data as a real zero or an empty schedule.
+    collected: null,
+    spent: null,
+    dueSoon: null,
+    duties: null,
+  });
+}
+
 // POST /api/rooms { roomName } -> { room }
 export async function createRoom(req, res) {
   const user = req.user;

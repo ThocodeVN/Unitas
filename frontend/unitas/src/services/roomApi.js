@@ -18,7 +18,7 @@ async function request(path, options = {}) {
 const send = (method, body) => ({ method, body: JSON.stringify(body) });
 const toState = (d) => ({ room: d.room ?? null, pending: d.pending ?? null });
 
-// Đường dẫn dưới đây là đề xuất, chỉnh lại cho khớp khi backend chốt API phòng
+// Endpoints cho trạng thái phòng, thành viên và các thao tác quản lý phòng.
 export const getMyRoom = () => request("/rooms/me").then(toState);
 
 export const createRoom = (roomName) =>

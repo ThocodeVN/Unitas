@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/unitas-logo-white.png";
 import PendingView from "../components/PendingView";
 import RoomSetup from "../components/RoomSetup";
 import RoomView from "../components/RoomView";
 import UserMenu from "../components/UserMenu";
+import DashboardLayout from "../components/DashboardLayout";
 import { getMe, logout } from "../services/authApi";
 import { getMyRoom } from "../services/roomApi";
 import "../styles/dashboard.css";
@@ -34,6 +35,7 @@ function captureInviteCode() {
 
 export default function Home() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [user, setUser] = useState(null);
   const [room, setRoom] = useState(null);
   const [pending, setPending] = useState(null);
@@ -62,7 +64,7 @@ export default function Home() {
           setPending(data.pending);
         }
       } catch (err) {
-        // 404: backend chưa có API phòng
+        // Keep the current error visible if room state could not be loaded.
         if (alive)
           setError({ message: err.message, unavailable: err.status === 404 });
       }
@@ -103,6 +105,12 @@ export default function Home() {
     setPending(result.pending);
   };
 
+  const handleLeft = () => {
+    setRoom(null);
+    setPending(null);
+    navigate("/", { replace: true });
+  };
+
   if (loading || !user) {
     return <div className="db-page db-center">Đang tải…</div>;
   }
@@ -111,16 +119,34 @@ export default function Home() {
     room?.listMember?.find((m) => String(m._id) === String(user._id))
       ?.roleInRoom || null;
 
+  if (pathname !== "/" && (!room || myRole !== "TREASURER")) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (room && myRole === "TREASURER") {
+    return (
+      <DashboardLayout
+        me={user}
+        room={room}
+        role={myRole}
+        onLogout={handleLogout}
+        onUserChange={setUser}
+        onRoomChange={setRoom}
+        onLeft={handleLeft}
+      />
+    );
+  }
+
   let content;
   if (error?.unavailable) {
     content = (
       <div className="db-card db-pending">
         <h1 className="db-card-title db-card-title--lg">
-          Tính năng phòng đang được hoàn thiện
+          Không tìm thấy thông tin phòng
         </h1>
         <p className="db-card-sub">
-          Việc tạo phòng, tham gia phòng và quản lý quỹ chung sẽ sớm có mặt. Bạn
-          vẫn có thể dùng menu ở góc phải để xem hồ sơ hoặc đăng xuất.
+          Không thể tải trạng thái phòng hiện tại. Vui lòng thử tải lại trước
+          khi tiếp tục.
         </p>
         <button className="db-btn" type="button" onClick={retry}>
           Thử lại

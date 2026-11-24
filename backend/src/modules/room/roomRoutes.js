@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   getMyRoom,
+  getDashboardSummary,
   createRoom,
   joinRoom,
   cancelJoin,
@@ -13,6 +14,7 @@ import {
 const roomRouter = Router();
 
 roomRouter.get("/me", getMyRoom);
+roomRouter.get("/dashboard", getDashboardSummary);
 roomRouter.post("/", createRoom);
 roomRouter.post("/join", joinRoom);
 roomRouter.delete("/join", cancelJoin);
