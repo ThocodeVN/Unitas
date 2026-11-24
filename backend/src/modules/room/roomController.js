@@ -2,6 +2,7 @@ import crypto from "crypto";
 import mongoose from "mongoose";
 import Room from "./roomModel.js";
 import User from "../../models/User.js";
+import Contribution from "../finance/contributionModel.js";
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // bỏ I, O, 0, 1 cho dễ đọc
 const same = (a, b) => String(a) === String(b);
@@ -136,17 +137,58 @@ export async function getDashboardSummary(req, res) {
     return res.status(404).json({ message: "Không tìm thấy phòng" });
   }
 
+  // Khoản đóng có hạn trong tháng này -> thanh tiến độ "đã thu"
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const contributions = await Contribution.find({ room: room._id }).populate(
+    "payments.user",
+    "fullName",
+  );
+
+  let amount = 0;
+  let target = 0;
+  let paid = 0;
+  let total = 0;
+  for (const c of contributions) {
+    if (c.dueDate < monthStart || c.dueDate >= monthEnd) continue;
+    for (const p of c.payments) {
+      total += 1;
+      target += c.amount;
+      if (p.status === "PAID") {
+        paid += 1;
+        amount += c.amount;
+      }
+    }
+  }
+
+  // Chưa đóng và hạn trong 7 ngày tới (hoặc đã quá hạn)
+  const soon = new Date(Date.now() + 7 * 86_400_000);
+  const dueSoon = [];
+  for (const c of contributions) {
+    if (c.dueDate > soon) continue;
+    for (const p of c.payments) {
+      if (p.status !== "UNPAID" || !p.user) continue;
+      dueSoon.push({
+        id: `${c._id}-${p.user._id}`,
+        name: p.user.fullName,
+        item: c.title,
+        amount: c.amount,
+        dueDate: c.dueDate,
+      });
+    }
+  }
+  dueSoon.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
   return res.json({
     roomName: room.roomName,
     fundBalance: room.fundBalance,
     memberCount: room.listMember.length,
     pendingMemberCount: room.pendingMembers?.length ?? 0,
-    // These modules do not have persisted records yet; null keeps the UI from
-    // presenting missing data as a real zero or an empty schedule.
-    collected: null,
-    spent: null,
-    dueSoon: null,
-    duties: null,
+    collected: total ? { amount, target, paid, members: total } : null,
+    spent: null, // phần 3: chi tiêu
+    dueSoon,
+    duties: null, // phần 4: lịch trực
   });
 }
 
@@ -154,12 +196,10 @@ export async function getDashboardSummary(req, res) {
 export async function createRoom(req, res) {
   const user = req.user;
   if (!(await isFree(user))) {
-    return res
-      .status(409)
-      .json({
-        message:
-          "Bạn đang ở trong một phòng. Hãy rời phòng trước khi tạo phòng mới",
-      });
+    return res.status(409).json({
+      message:
+        "Bạn đang ở trong một phòng. Hãy rời phòng trước khi tạo phòng mới",
+    });
   }
 
   const roomName = String(req.body?.roomName ?? "").trim();
@@ -181,12 +221,10 @@ export async function createRoom(req, res) {
   user.roleInRoom = "TREASURER";
   await user.save();
 
-  return res
-    .status(201)
-    .json({
-      message: "Đã tạo phòng",
-      room: await loadRoom(room._id, user._id),
-    });
+  return res.status(201).json({
+    message: "Đã tạo phòng",
+    room: await loadRoom(room._id, user._id),
+  });
 }
 
 // POST /api/rooms/join { inviteCode } -> { pending }

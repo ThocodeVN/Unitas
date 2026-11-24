@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
 import roomRoutes from "./modules/room/roomRoutes.js";
 import { protect } from "./middleware/auth.js";
+import financeRoutes from "./modules/finance/financeRoutes.js";
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/rooms", protect, roomRoutes);
+app.use("/api/finance", protect, financeRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Không tìm thấy đường dẫn" });
