@@ -4,6 +4,8 @@ import {
   login,
   logout,
   getMe,
+  updateMe,
+  changePassword,
   forgotPassword,
   resetPassword,
 } from "../controllers/authController.js";
@@ -16,6 +18,8 @@ router.post("/register", register);
 router.post("/login", login);
 router.post("/logout", logout);
 router.get("/me", protect, getMe);
+router.patch("/me", protect, updateMe);
+router.patch("/password", protect, changePassword);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 

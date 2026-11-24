@@ -155,11 +155,9 @@ export const resetPassword = async (req, res) => {
     resetPasswordExpires: { $gt: new Date() },
   });
   if (!user) {
-    return res
-      .status(400)
-      .json({
-        message: "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn",
-      });
+    return res.status(400).json({
+      message: "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn",
+    });
   }
 
   user.password = await bcrypt.hash(password, 10);
@@ -170,4 +168,51 @@ export const resetPassword = async (req, res) => {
   return res.json({
     message: "Đặt lại mật khẩu thành công, hãy đăng nhập lại",
   });
+};
+const AVATAR_REGEX = /^data:image\/(jpeg|png|webp|svg\+xml)[;,]/;
+
+// PATCH /api/auth/me { avatar } -> { user }
+export const updateMe = async (req, res) => {
+  const user = req.user;
+  const avatar = String(req.body?.avatar ?? "");
+
+  if (avatar !== "" && !AVATAR_REGEX.test(avatar)) {
+    return res.status(400).json({ message: "Ảnh đại diện không hợp lệ" });
+  }
+  if (avatar.length > 300000) {
+    return res.status(400).json({ message: "Ảnh đại diện quá lớn" });
+  }
+
+  user.avatar = avatar;
+  await user.save();
+  return res.json({ message: "Đã cập nhật ảnh đại diện", user });
+};
+// PATCH /api/auth/password { currentPassword, newPassword }
+export const changePassword = async (req, res) => {
+  const currentPassword = String(req.body?.currentPassword ?? "");
+  const newPassword = String(req.body?.newPassword ?? "");
+
+  if (newPassword.length < 8) {
+    return res.status(400).json({ message: "Mật khẩu mới tối thiểu 8 ký tự" });
+  }
+
+  const user = await User.findById(req.user._id).select("+password");
+
+  // Tài khoản Google/Facebook chưa có mật khẩu thì được đặt luôn
+  if (user.password) {
+    const ok =
+      currentPassword && (await bcrypt.compare(currentPassword, user.password));
+    if (!ok) {
+      return res.status(400).json({ message: "Mật khẩu hiện tại không đúng" });
+    }
+    if (currentPassword === newPassword) {
+      return res
+        .status(400)
+        .json({ message: "Mật khẩu mới phải khác mật khẩu cũ" });
+    }
+  }
+
+  user.password = await bcrypt.hash(newPassword, 10);
+  await user.save();
+  return res.json({ message: "Đã đổi mật khẩu" });
 };
