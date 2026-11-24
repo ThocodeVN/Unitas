@@ -4,6 +4,8 @@ import Room from "./roomModel.js";
 import User from "../../models/User.js";
 import Contribution from "../finance/contributionModel.js";
 import { monthSpent } from "../finance/expenseController.js";
+import { todayDuties, todayVN } from "../duty/dutyController.js";
+import Duty from "../duty/dutyModel.js";
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // bỏ I, O, 0, 1 cho dễ đọc
 const same = (a, b) => String(a) === String(b);
@@ -189,7 +191,7 @@ export async function getDashboardSummary(req, res) {
     collected: total ? { amount, target, paid, members: total } : null,
     spent: await monthSpent(room._id),
     dueSoon,
-    duties: null, // phần 4: lịch trực
+    duties: await todayDuties(room._id),
   });
 }
 
@@ -287,9 +289,17 @@ export async function leaveRoom(req, res) {
 
     if (others.length === 0) {
       await room.deleteOne(); // người cuối cùng rời đi thì xóa phòng
+      await Duty.deleteMany({ room: room._id });
     } else {
       room.listMember = others;
       await room.save();
+      // Bỏ các việc chưa làm từ hôm nay trở đi của người rời phòng
+      await Duty.deleteMany({
+        room: room._id,
+        assignee: user._id,
+        status: "TODO",
+        date: { $gte: todayVN() },
+      });
     }
   }
 
