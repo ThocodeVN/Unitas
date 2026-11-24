@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Avatar from "./Avatar";
 import AvatarDialog from "./AvatarDialog";
+import { ProfileDialog, PasswordDialog } from "./ProfileDialogs";
 
 const ROLE_LABEL = { TREASURER: "Thủ quỹ", MEMBER: "Thành viên" };
 
@@ -48,7 +49,7 @@ const LogoutIcon = () => (
 
 export default function UserMenu({ user, role, onLogout, onUserChange }) {
   const [open, setOpen] = useState(false);
-  const [dialog, setDialog] = useState(false);
+  const [dialog, setDialog] = useState(null); // "avatar" | "profile" | "password"
   const [busy, setBusy] = useState(false);
   const ref = useRef(null);
 
@@ -68,10 +69,15 @@ export default function UserMenu({ user, role, onLogout, onUserChange }) {
     };
   }, [open]);
 
-  const openAvatar = () => {
+  const openDialog = (name) => {
     setOpen(false);
-    setDialog(true);
+    setDialog(name);
   };
+  const openAvatar = () => openDialog("avatar");
+  const closeDialog = () => setDialog(null);
+
+  // Gộp vào user cũ để giữ các trường API không trả lại (vd hasPassword)
+  const applyUser = (updated) => onUserChange({ ...user, ...updated });
 
   const logout = async () => {
     setBusy(true);
@@ -156,19 +162,17 @@ export default function UserMenu({ user, role, onLogout, onUserChange }) {
                 type="button"
                 className="um-item"
                 role="menuitem"
-                disabled
+                onClick={() => openDialog("profile")}
               >
-                <UserIcon /> Chỉnh sửa hồ sơ{" "}
-                <span className="db-badge um-soon">Sắp có</span>
+                <UserIcon /> Chỉnh sửa hồ sơ
               </button>
               <button
                 type="button"
                 className="um-item"
                 role="menuitem"
-                disabled
+                onClick={() => openDialog("password")}
               >
-                <LockIcon /> Đổi mật khẩu{" "}
-                <span className="db-badge um-soon">Sắp có</span>
+                <LockIcon /> Đổi mật khẩu
               </button>
               <button
                 type="button"
@@ -184,15 +188,39 @@ export default function UserMenu({ user, role, onLogout, onUserChange }) {
         )}
       </div>
 
-      {dialog &&
+      {dialog === "avatar" &&
         createPortal(
           <AvatarDialog
             user={user}
-            onClose={() => setDialog(false)}
+            onClose={closeDialog}
             onSaved={(updated) => {
-              onUserChange(updated);
-              setDialog(false);
+              applyUser(updated);
+              closeDialog();
             }}
+          />,
+          document.body,
+        )}
+
+      {dialog === "profile" &&
+        createPortal(
+          <ProfileDialog
+            user={user}
+            onClose={closeDialog}
+            onSaved={(updated) => {
+              applyUser(updated);
+              closeDialog();
+            }}
+          />,
+          document.body,
+        )}
+
+      {/* Đổi mật khẩu tự hiện màn "Đã đổi" rồi người dùng bấm Xong mới đóng */}
+      {dialog === "password" &&
+        createPortal(
+          <PasswordDialog
+            user={user}
+            onClose={closeDialog}
+            onSaved={applyUser}
           />,
           document.body,
         )}

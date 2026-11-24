@@ -63,6 +63,37 @@ export function fileToAvatar(file, size = 256) {
   });
 }
 
+// Lỗi kèm errors theo từng ô ({ fullName, phone, username, ... }) để form hiện dưới ô nhập
+async function send(method, path, body, fallback) {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method,
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(data.message || fallback);
+    err.status = res.status;
+    err.fields = data.errors || {};
+    throw err;
+  }
+  return data;
+}
+
+// Chỉ gửi những trường muốn đổi: { fullName?, phone?, username? } -> user
+export const updateProfile = (fields) =>
+  send("PATCH", "/auth/me", fields, "Không lưu được hồ sơ").then((d) => d.user);
+
+// currentPassword bỏ trống được nếu tài khoản chưa có mật khẩu (đăng nhập Google)
+export const changePassword = ({ currentPassword, newPassword }) =>
+  send(
+    "PATCH",
+    "/auth/password",
+    { currentPassword, newPassword },
+    "Không đổi được mật khẩu",
+  );
+
 // Lưu ảnh đại diện, trả về người dùng đã cập nhật (cần backend có PATCH /api/auth/me)
 export async function saveAvatar(_user, avatar) {
   const res = await fetch(`${BASE_URL}/auth/me`, {

@@ -97,8 +97,13 @@ export const logout = (req, res) => {
   res.json({ message: "Đã đăng xuất" });
 };
 
-export const getMe = (req, res) => {
-  res.json({ user: req.user });
+// hasPassword: false với tài khoản Google/Facebook chưa đặt mật khẩu,
+// để giao diện đổi mật khẩu biết có cần hỏi mật khẩu hiện tại hay không
+export const getMe = async (req, res) => {
+  const hasPassword = Boolean(
+    await User.exists({ _id: req.user._id, password: { $type: "string" } }),
+  );
+  res.json({ user: { ...req.user.toJSON(), hasPassword } });
 };
 
 export const forgotPassword = async (req, res) => {
