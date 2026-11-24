@@ -1,0 +1,239 @@
+.rc-page {
+  min-height: 100vh;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #121212;
+  color: #fff;
+}
+
+/* ---------- Cột trái: thương hiệu ---------- */
+.rc-brand {
+  background: #0d0d0d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px;
+}
+.rc-logo {
+  width: 160px;
+  height: auto;
+  margin-bottom: 40px;
+}
+.rc-bar {
+  width: 48px;
+  height: 3px;
+  background: #f5b800;
+  border-radius: 2px;
+  margin-bottom: 28px;
+}
+.rc-tagline {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+.rc-tag-sub {
+  color: #b5b5b5;
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 280px;
+  margin: 0;
+}
+
+/* ---------- Cột phải: nội dung ---------- */
+.rc-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+}
+.rc-card {
+  width: 100%;
+  max-width: 400px;
+  text-align: left;
+}
+
+.rc-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(245, 184, 0, 0.12);
+  color: #f5b800;
+  margin-bottom: 24px;
+}
+.rc-icon svg {
+  width: 28px;
+  height: 28px;
+}
+.rc-icon--ok {
+  background: rgba(76, 196, 106, 0.14);
+  color: #6fd17a;
+}
+.rc-icon--warn {
+  background: rgba(255, 107, 94, 0.14);
+  color: #ff7a70;
+}
+
+.rc-title {
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+.rc-sub {
+  color: #a3a3a3;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 28px;
+}
+.rc-sub strong {
+  color: #fff;
+  font-weight: 600;
+  word-break: break-all;
+}
+.rc-hint {
+  color: #7d7d7d;
+  font-size: 13px;
+  margin: -12px 0 20px;
+}
+
+/* ---------- Nút ---------- */
+.rc-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 48px;
+  margin-top: 8px;
+  border: 0;
+  border-radius: 10px;
+  background: #f5b800;
+  color: #111;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    filter 0.15s,
+    transform 0.05s;
+}
+.rc-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.rc-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.rc-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.rc-btn--ghost {
+  background: transparent;
+  color: #fff;
+  border: 1px solid #333;
+}
+.rc-btn--ghost:hover:not(:disabled) {
+  background: #1a1a1a;
+  border-color: #555;
+  filter: none;
+}
+.rc-link-btn {
+  display: block;
+  margin: 14px auto 0;
+  background: none;
+  border: 0;
+  color: #bdbdbd;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.rc-link-btn:hover {
+  color: #fff;
+}
+.rc-back {
+  display: block;
+  text-align: center;
+  margin-top: 24px;
+  color: #a3a3a3;
+  font-size: 14px;
+  text-decoration: none;
+}
+.rc-back:hover {
+  color: #fff;
+}
+
+/* ---------- Thanh đo độ mạnh mật khẩu ---------- */
+.rc-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -6px 0 18px;
+}
+.rc-meter-bars {
+  display: flex;
+  flex: 1;
+  gap: 4px;
+}
+.rc-meter-bars span {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: #2a2a2a;
+  transition: background 0.2s;
+}
+.rc-meter[data-level="1"] .rc-meter-bars span.on {
+  background: #ff6b5e;
+}
+.rc-meter[data-level="2"] .rc-meter-bars span.on {
+  background: #ffb020;
+}
+.rc-meter[data-level="3"] .rc-meter-bars span.on {
+  background: #c8d84a;
+}
+.rc-meter[data-level="4"] .rc-meter-bars span.on {
+  background: #4cc46a;
+}
+.rc-meter-label {
+  min-width: 72px;
+  text-align: right;
+  font-size: 12px;
+  color: #a3a3a3;
+}
+
+/* ---------- Màn hình nhỏ: thu cột trái thành thanh logo ---------- */
+@media (max-width: 860px) {
+  .rc-page {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .rc-brand {
+    background: transparent;
+    padding: 28px 0 0;
+  }
+  .rc-logo {
+    width: 64px;
+    margin: 0;
+  }
+  .rc-bar,
+  .rc-tagline,
+  .rc-tag-sub {
+    display: none;
+  }
+}
+/* ---------- Khung báo lỗi ---------- */
+.rc-alert {
+  border: 1px solid #ff6b5e;
+  background: rgba(255, 107, 94, 0.08);
+  color: #ff8a80;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 4px 0 12px;
+}
