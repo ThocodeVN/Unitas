@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Room from "./roomModel.js";
 import User from "../../models/User.js";
 import Contribution from "../finance/contributionModel.js";
+import { monthSpent } from "../finance/expenseController.js";
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // bỏ I, O, 0, 1 cho dễ đọc
 const same = (a, b) => String(a) === String(b);
@@ -186,7 +187,7 @@ export async function getDashboardSummary(req, res) {
     memberCount: room.listMember.length,
     pendingMemberCount: room.pendingMembers?.length ?? 0,
     collected: total ? { amount, target, paid, members: total } : null,
-    spent: null, // phần 3: chi tiêu
+    spent: await monthSpent(room._id),
     dueSoon,
     duties: null, // phần 4: lịch trực
   });
