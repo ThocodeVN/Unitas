@@ -1,0 +1,10 @@
+[33m3af7405[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/fund_UI[m[33m)[m Tạo giao diện cho chức năng quản lý quỹ chung của thủ quỹ
+[33m9e37a66[m Tạo giao diện cho chức năng quản lý quỹ chung
+[33m1126c85[m[33m ([m[1;32mmain[m[33m)[m Merge branch 'main' of https://github.com/ThocodeVN/Unitas
+[33m93c8e40[m all
+[33m7f6498b[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge pull request #4 from ThocodeVN/feature/profile-frontend
+[33m899d708[m[33m ([m[1;31morigin/feature/profile-frontend[m[33m)[m feat: hop thoai chinh sua ho so va doi/dat mat khau
+[33mbf9bd85[m[33m ([m[1;31morigin/feature/profile-edit-backend[m[33m)[m feat(backend): sua ho so (ho ten, SDT, username) va khong xoa nham anh
+[33mf983b1c[m[33m ([m[1;31morigin/feature/stats-backend[m[33m)[m feat(backend): thong ke thu chi theo thang, chi theo danh muc, tien do thu
+[33m7c3b0cf[m[33m ([m[1;31morigin/feature/duty-backend[m[33m)[m feat(backend): viec phong va lich truc xoay vong, Dashboard hien viec hom nay
+[33mc1ea488[m[33m ([m[1;31morigin/feature/expense-backend[m[33m)[m feat(backend): chi tieu (them, xem, xoa hoan tien) va so "Da chi" tren Dashboard
