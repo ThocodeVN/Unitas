@@ -70,7 +70,14 @@ export async function getStats(req, res) {
   // Thu = giao dịch IN (xác nhận đóng tiền), theo ngày ghi nhận.
   // Chi = khoản chi, theo ngày chi thực tế.
   const [incomeMap, expenseMap, categories, contributions] = await Promise.all([
-    sumByMonth(Transaction, { room: roomId, type: "IN" }, "createdAt", rangeFrom, rangeTo),
+    sumByMonth(
+      Transaction,
+      // Điều chỉnh số dư và chuyển tiền mặt/tài khoản không phải tiền thu
+      { room: roomId, type: "IN", kind: { $nin: ["ADJUSTMENT", "TRANSFER"] } },
+      "createdAt",
+      rangeFrom,
+      rangeTo,
+    ),
     sumByMonth(Expense, { room: roomId }, "date", rangeFrom, rangeTo),
     Expense.aggregate([
       { $match: { room: roomId, date: { $gte: thisFrom, $lt: rangeTo } } },

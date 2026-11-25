@@ -1,0 +1,336 @@
+/* Dùng lại biến màu của dashboardShell.css (--db-*) nên tự theo sáng/tối */
+
+.vp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* ---------- Thanh công cụ: tab + chọn tuần ---------- */
+.vp-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.vp-tabs {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--db-line);
+  border-radius: 10px;
+  background: var(--db-field);
+}
+
+.vp-tab {
+  padding: 7px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--db-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.vp-tab.is-active {
+  background: var(--db-card);
+  color: var(--db-ink);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
+}
+
+.vp-week-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vp-week-label {
+  min-width: 112px;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.vp-icon-btn {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--db-line);
+  border-radius: 9px;
+  background: var(--db-field);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.vp-icon-btn:hover {
+  background: var(--db-line);
+}
+
+.vp-icon-btn--sm {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  color: var(--db-muted);
+  font-size: 16px;
+}
+
+/* ---------- Bảng 7 ngày ---------- */
+.vp-board {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.vp-day {
+  display: flex;
+  min-height: 180px;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--db-line);
+  border-radius: 12px;
+  background: var(--db-field);
+}
+
+.vp-day--today {
+  border-color: var(--db-gold);
+  box-shadow: inset 0 0 0 1px var(--db-gold);
+}
+
+.vp-day--past {
+  opacity: 0.7;
+}
+
+.vp-day-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 2px 4px;
+}
+
+.vp-day-name {
+  font-weight: 700;
+}
+
+.vp-day--today .vp-day-name {
+  color: #a98200;
+}
+
+.vp-day-date {
+  color: var(--db-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.vp-day-empty {
+  margin: 0;
+  color: var(--db-muted);
+  font-size: 12px;
+}
+
+/* ---------- Thẻ công việc ---------- */
+.vp-duty {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 10px;
+  border: 1px solid var(--db-line);
+  border-left: 3px solid var(--db-line);
+  border-radius: 9px;
+  background: var(--db-card);
+}
+
+.vp-duty--mine {
+  border-left-color: var(--db-gold);
+}
+
+.vp-duty-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.vp-check {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 7px;
+  cursor: pointer;
+}
+
+.vp-check input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 1px 0 0;
+  accent-color: var(--db-gold);
+}
+
+.vp-check input:disabled {
+  cursor: not-allowed;
+}
+
+.vp-duty-title {
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.vp-duty--done .vp-duty-title {
+  color: var(--db-muted);
+  text-decoration: line-through;
+}
+
+.vp-duty-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--db-muted);
+  font-size: 12px;
+}
+
+.vp-duty-who {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vp-duty-time {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.vp-duty-note {
+  margin: 0;
+  color: var(--db-muted);
+  font-size: 12px;
+}
+
+/* ---------- Form trong hộp thoại (hộp thoại luôn nền tối) ---------- */
+.vp-dialog {
+  max-width: 460px;
+  color: #f4f4f2;
+}
+
+.vp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vp-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.vp-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.vp-field > span {
+  color: #b5b5b5;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.vp-field input,
+.vp-field select {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #333;
+  border-radius: 9px;
+  background: #222;
+  color: #f4f4f2;
+  font: inherit;
+  color-scheme: dark;
+}
+
+.vp-field input:focus,
+.vp-field select:focus {
+  border-color: #f5b800;
+  outline: none;
+}
+
+.vp-pick-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  cursor: pointer;
+}
+
+.vp-pick-item input {
+  width: 16px;
+  height: 16px;
+  accent-color: #f5b800;
+}
+
+.vp-pick-order {
+  display: inline-grid;
+  width: 20px;
+  height: 20px;
+  margin-left: auto;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(245, 184, 0, 0.16);
+  color: #f5b800;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.vp-form-error {
+  margin: 0;
+  color: #ff8a80;
+  font-size: 13px;
+}
+
+/* ---------- Màn hình hẹp: các ngày xếp dọc ---------- */
+@media (max-width: 1100px) {
+  .vp-board {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .vp-board {
+    grid-template-columns: 1fr;
+  }
+
+  .vp-day {
+    min-height: 0;
+  }
+
+  .vp-field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .vp-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .vp-week-nav {
+    justify-content: space-between;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .vp-day--today .vp-day-name {
+    color: var(--db-gold);
+  }
+}

@@ -6,7 +6,7 @@ import { leaveRoom } from "../services/roomApi";
 import { formatVND } from "../utils/format";
 
 export default function RoomSettings() {
-  const { me, room, onLeft } = useOutletContext();
+  const { me, room, isTreasurer, onLeft } = useOutletContext();
   const [dialog, setDialog] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -17,6 +17,9 @@ export default function RoomSettings() {
   const hasOtherMembers = members.some(
     (member) => String(member._id) !== String(me._id),
   );
+  // Thủ quỹ phải chuyển quyền trước; thành viên thường rời lúc nào cũng được
+  const blockedLeave = isTreasurer && hasOtherMembers;
+  const lastOne = !hasOtherMembers;
 
   const copy = async (value, message) => {
     try {
@@ -46,7 +49,7 @@ export default function RoomSettings() {
     <>
       <section className="db-welcome">
         <div>
-          <p className="db-eyebrow">Quản lý</p>
+          <p className="db-eyebrow">{isTreasurer ? "Quản lý" : "Phòng của bạn"}</p>
           <h2 className="db-welcome-title">Cài đặt phòng</h2>
           <p className="db-hello">Thông tin và mã mời của {room.roomName}.</p>
         </div>
@@ -122,15 +125,17 @@ export default function RoomSettings() {
         <div>
           <h2>Rời phòng</h2>
           <p className="db-card-copy">
-            {hasOtherMembers
-              ? "Hãy chuyển quyền thủ quỹ cho thành viên khác trước khi rời phòng."
-              : "Bạn là người cuối cùng trong phòng. Rời đi sẽ xóa phòng này."}
+            {lastOne
+              ? "Bạn là người cuối cùng trong phòng. Rời đi sẽ xóa phòng này."
+              : blockedLeave
+                ? "Hãy chuyển quyền thủ quỹ cho thành viên khác trước khi rời phòng."
+                : "Bạn có thể rời phòng bất cứ lúc nào. Muốn quay lại cần gửi yêu cầu tham gia mới."}
           </p>
         </div>
         <button
           className="db-btn db-btn--outline-danger"
           type="button"
-          disabled={hasOtherMembers || busy}
+          disabled={blockedLeave || busy}
           onClick={() => setDialog(true)}
         >
           Rời phòng
@@ -146,7 +151,9 @@ export default function RoomSettings() {
           onCancel={() => setDialog(false)}
           onConfirm={leave}
         >
-          Phòng sẽ bị xóa vì bạn là thành viên cuối cùng.
+          {lastOne
+            ? "Phòng sẽ bị xóa vì bạn là thành viên cuối cùng."
+            : "Các lịch trực chưa làm của bạn sẽ bị xóa. Muốn quay lại bạn cần gửi yêu cầu tham gia mới."}
         </ConfirmDialog>
       )}
 

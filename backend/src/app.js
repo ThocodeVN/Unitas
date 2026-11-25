@@ -6,6 +6,7 @@ import roomRoutes from "./modules/room/roomRoutes.js";
 import { protect } from "./middleware/auth.js";
 import financeRoutes from "./modules/finance/financeRoutes.js";
 import dutyRoutes from "./modules/duty/dutyRoutes.js";
+import notificationRoutes from "./modules/notification/notificationRoutes.js";
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/rooms", protect, roomRoutes);
 app.use("/api/finance", protect, financeRoutes);
 app.use("/api/duties", protect, dutyRoutes);
+app.use("/api/notifications", protect, notificationRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Không tìm thấy đường dẫn" });

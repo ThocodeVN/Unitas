@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import RoomMembers from "./pages/RoomMembers";
 import RoomSettings from "./pages/RoomSettings";
 import CommonFund from "./pages/CommonFund";
+import ViecPhong from "./pages/ViecPhong";
 import FeaturePlaceholder from "./pages/FeaturePlaceholder";
 
 export default function App() {
@@ -31,7 +32,7 @@ export default function App() {
         <Route path="khoan-dong" element={<FeaturePlaceholder />} />
         <Route path="chi-tieu" element={<FeaturePlaceholder />} />
         <Route path="thong-ke" element={<FeaturePlaceholder />} />
-        <Route path="viec-phong" element={<FeaturePlaceholder />} />
+        <Route path="viec-phong" element={<ViecPhong />} />
         <Route path="thanh-vien" element={<RoomMembers />} />
         <Route path="cai-dat" element={<RoomSettings />} />
         <Route path="ho-so" element={<FeaturePlaceholder />} />

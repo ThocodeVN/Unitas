@@ -1235,3 +1235,29 @@
     animation: none;
   }
 }
+
+/* ---------- Chuyển tiền mặt ↔ tài khoản ---------- */
+.cf-balance-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cf-balance-actions .cf-adjust-button {
+  margin-top: 0;
+}
+
+.cf-transfer-preview {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgb(245 184 0 / 10%);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 480px) {
+  .cf-balance-actions {
+    grid-template-columns: 1fr;
+  }
+}

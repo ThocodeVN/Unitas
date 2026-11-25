@@ -86,7 +86,7 @@ function DutyTime({ time }) {
 }
 
 export default function Dashboard() {
-  const { me, room } = useOutletContext();
+  const { me, room, isTreasurer } = useOutletContext();
   const [summary, setSummary] = useState(null);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
@@ -194,7 +194,7 @@ export default function Dashboard() {
       <section className="db-grid2">
         <article className="db-card">
           <h2 className="db-section-title">
-            Sắp đến hạn đóng tiền
+            {isTreasurer ? "Sắp đến hạn đóng tiền" : "Khoản bạn sắp đến hạn"}
             <Link className="db-link" to="/khoan-dong">
               Xem tất cả
             </Link>
@@ -202,7 +202,11 @@ export default function Dashboard() {
           {dueSoon === null ? (
             <div className="db-empty">Chưa có dữ liệu khoản đóng.</div>
           ) : dueSoon.length === 0 ? (
-            <div className="db-empty">Chưa có khoản nào sắp đến hạn.</div>
+            <div className="db-empty">
+              {isTreasurer
+                ? "Chưa có khoản nào sắp đến hạn."
+                : "Bạn không có khoản nào sắp đến hạn."}
+            </div>
           ) : (
             dueSoon.map((payment) => (
               <DueRow key={payment.id || payment._id} payment={payment} />

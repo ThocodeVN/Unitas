@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import { setAuthCookie, cookieOptions } from "../utils/token.js";
 import { sendEmail } from "../utils/sendEmail.js";
+import { notify } from "../modules/notification/notify.js";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^(0|\+84)\d{9}$/;
@@ -243,6 +244,12 @@ export const updateMe = async (req, res) => {
   }
 
   const onlyAvatar = Object.keys(updates).every((k) => k === "avatar");
+  await notify({
+    type: "ACCOUNT",
+    message: "",
+    actor: req.user._id,
+    self: onlyAvatar ? "Bạn đã đổi ảnh đại diện" : "Bạn đã cập nhật hồ sơ",
+  });
   return res.json({
     message: onlyAvatar ? "Đã cập nhật ảnh đại diện" : "Đã cập nhật hồ sơ",
     user,
@@ -273,7 +280,16 @@ export const changePassword = async (req, res) => {
     }
   }
 
+  const hadPassword = Boolean(user.password);
   user.password = await bcrypt.hash(newPassword, 10);
   await user.save();
+  // Thông báo bảo mật: để ở trạng thái chưa đọc cho chủ tài khoản thấy
+  await notify({
+    users: [user._id],
+    type: "ACCOUNT",
+    message: hadPassword
+      ? "Mật khẩu tài khoản vừa được thay đổi. Nếu không phải bạn, hãy đặt lại mật khẩu ngay"
+      : "Bạn đã đặt mật khẩu cho tài khoản",
+  });
   return res.json({ message: "Đã đổi mật khẩu" });
 };

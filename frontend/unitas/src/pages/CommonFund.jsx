@@ -1,65 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import Icon from "../components/Icon";
 import { formatVND } from "../utils/format";
+import {
+  approveAdjustment,
+  cancelAdjustment,
+  createAdjustment,
+  createTransfer,
+  getFund,
+  getFundHistory,
+  listAdjustments,
+  rejectAdjustment,
+} from "../services/fundApi";
 import "../styles/commonFund.css";
 
-const INITIAL_CASH = 5_200_000;
-const INITIAL_ACCOUNT = 13_250_000;
-const BANK_ACCOUNT_BALANCE = 25_800_000;
-const TREASURER_PERSONAL_BALANCE = BANK_ACCOUNT_BALANCE - INITIAL_ACCOUNT;
-const TIME_SERIES = {
-  week: [
-    {
-      id: "week-current",
-      label: "19–25/11/2026",
-      points: [
-        { label: "19/11", cash: 4_650_000, account: 11_900_000 },
-        { label: "20/11", cash: 4_820_000, account: 12_100_000 },
-        { label: "21/11", cash: 4_800_000, account: 12_200_000 },
-        { label: "22/11", cash: 4_950_000, account: 12_650_000 },
-        { label: "23/11", cash: 5_000_000, account: 12_850_000 },
-        { label: "24/11", cash: 5_100_000, account: 12_850_000 },
-        { label: "25/11", cash: INITIAL_CASH, account: INITIAL_ACCOUNT },
-      ],
-    },
-    {
-      id: "week-previous",
-      label: "12–18/11/2026",
-      points: [
-        { label: "12/11", cash: 4_200_000, account: 11_000_000 },
-        { label: "13/11", cash: 4_350_000, account: 11_100_000 },
-        { label: "14/11", cash: 4_350_000, account: 11_600_000 },
-        { label: "15/11", cash: 4_500_000, account: 11_700_000 },
-        { label: "16/11", cash: 4_600_000, account: 11_900_000 },
-        { label: "17/11", cash: 4_500_000, account: 11_900_000 },
-        { label: "18/11", cash: 4_650_000, account: 11_900_000 },
-      ],
-    },
-  ],
-  month: [
-    {
-      id: "2026-11",
-      label: "Tháng 11, 2026",
-      points: [
-        { label: "1–7/11", cash: 3_900_000, account: 10_800_000 },
-        { label: "8–14/11", cash: 4_350_000, account: 11_600_000 },
-        { label: "15–21/11", cash: 4_800_000, account: 12_200_000 },
-        { label: "22–25/11", cash: INITIAL_CASH, account: INITIAL_ACCOUNT },
-      ],
-    },
-    {
-      id: "2026-10",
-      label: "Tháng 10, 2026",
-      points: [
-        { label: "1–7/10", cash: 3_700_000, account: 10_200_000 },
-        { label: "8–14/10", cash: 4_100_000, account: 10_900_000 },
-        { label: "15–21/10", cash: 4_500_000, account: 11_400_000 },
-        { label: "22–28/10", cash: 4_700_000, account: 11_800_000 },
-        { label: "29–31/10", cash: 4_900_000, account: 12_100_000 },
-      ],
-    },
-  ],
-};
+// Phần ví ngân hàng chưa làm backend: các số dưới đây chỉ là số liệu mẫu
+const DEMO_BANK_BALANCE = 25_800_000;
+const DEMO_FUND_IN_ACCOUNT = 13_250_000;
+const DEMO_TREASURER_PERSONAL = DEMO_BANK_BALANCE - DEMO_FUND_IN_ACCOUNT;
+
+const SOURCE_KEY = { cash: "CASH", account: "ACCOUNT" };
+const SOURCE_TEXT = { CASH: "Tiền mặt", ACCOUNT: "Tiền tài khoản" };
 
 const INTEGRATED_BANK = { name: "Vietcombank", short: "VCB", color: "#08784e" };
 const BANK_OPTIONS = [
@@ -69,22 +30,36 @@ const BANK_OPTIONS = [
   { name: "MB Bank", short: "MB", color: "#173e82" },
 ];
 
-function AdjustmentDialog({ onClose, onSubmit }) {
+function AdjustmentDialog({ cash, account, onClose, onSubmit }) {
   const [source, setSource] = useState("account");
   const [newBalance, setNewBalance] = useState("");
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
-  const currentBalance = source === "cash" ? INITIAL_CASH : INITIAL_ACCOUNT;
+  const [busy, setBusy] = useState(false);
+  const currentBalance = source === "cash" ? cash : account;
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault();
     const value = Number(newBalance);
-    if (!Number.isFinite(value) || value < 0 || !reason.trim()) return;
+    if (!Number.isInteger(value) || value < 0 || !reason.trim()) {
+      setError("Số dư mới phải là số nguyên không âm.");
+      return;
+    }
     if (value === currentBalance) {
       setError("Số dư mới phải khác số dư hiện tại.");
       return;
     }
-    onSubmit({ source, currentBalance, newBalance: value, reason: reason.trim() });
+    setBusy(true);
+    try {
+      await onSubmit({
+        source: SOURCE_KEY[source],
+        newBalance: value,
+        reason: reason.trim(),
+      });
+    } catch (err) {
+      setError(err.message);
+      setBusy(false);
+    }
   };
 
   return (
@@ -155,7 +130,120 @@ function AdjustmentDialog({ onClose, onSubmit }) {
           </div>
           <div className="cf-dialog-actions">
             <button className="cf-btn cf-btn-quiet" type="button" onClick={onClose}>Hủy</button>
-            <button className="cf-btn cf-btn-primary" type="submit">Gửi yêu cầu duyệt</button>
+            <button className="cf-btn cf-btn-primary" type="submit" disabled={busy}>
+              {busy ? "Đang gửi…" : "Gửi yêu cầu duyệt"}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  );
+}
+
+// Chuyển giữa tiền mặt và tài khoản: tổng quỹ không đổi
+function TransferDialog({ cash, account, onClose, onDone }) {
+  const [from, setFrom] = useState(cash > 0 || account === 0 ? "CASH" : "ACCOUNT");
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const available = from === "CASH" ? cash : account;
+  const value = Number(amount) || 0;
+  const nextCash = from === "CASH" ? cash - value : cash + value;
+  const nextAccount = from === "CASH" ? account + value : account - value;
+
+  const submit = async (event) => {
+    event.preventDefault();
+    if (!Number.isInteger(value) || value < 1000) {
+      setError("Số tiền phải là số nguyên từ 1.000 ₫ trở lên.");
+      return;
+    }
+    if (value > available) {
+      setError(`Chỉ có thể chuyển tối đa ${formatVND(available)}.`);
+      return;
+    }
+    setBusy(true);
+    try {
+      await onDone(await createTransfer({ from, amount: value, note: note.trim() }));
+    } catch (err) {
+      setError(err.message);
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="cf-overlay" onMouseDown={onClose}>
+      <section
+        className="cf-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cf-transfer-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="cf-dialog-head">
+          <div className="cf-dialog-icon"><Icon name="swap" /></div>
+          <button className="cf-icon-button" type="button" aria-label="Đóng" onClick={onClose}>
+            <Icon name="close" />
+          </button>
+        </div>
+        <h2 id="cf-transfer-title">Chuyển tiền mặt ↔ tài khoản</h2>
+        <p className="cf-dialog-copy">
+          Ghi lại khi bạn nộp tiền mặt vào ngân hàng hoặc rút tiền ra. Tổng quỹ không đổi.
+        </p>
+
+        <form className="cf-form" onSubmit={submit}>
+          <label className="cf-field-label" htmlFor="cf-transfer-from">Chiều chuyển</label>
+          <select
+            id="cf-transfer-from"
+            value={from}
+            onChange={(event) => { setFrom(event.target.value); setError(""); }}
+          >
+            <option value="CASH">Nộp tiền mặt vào tài khoản</option>
+            <option value="ACCOUNT">Rút từ tài khoản ra tiền mặt</option>
+          </select>
+
+          <label className="cf-field-label" htmlFor="cf-transfer-amount">
+            Số tiền · có thể chuyển {formatVND(available)}
+          </label>
+          <div className="cf-input-wrap">
+            <input
+              id="cf-transfer-amount"
+              inputMode="numeric"
+              min="1000"
+              max={available}
+              placeholder="Nhập số tiền"
+              required
+              type="number"
+              value={amount}
+              onChange={(event) => { setAmount(event.target.value); setError(""); }}
+            />
+            <span>₫</span>
+          </div>
+
+          <label className="cf-field-label" htmlFor="cf-transfer-note">Ghi chú (không bắt buộc)</label>
+          <textarea
+            id="cf-transfer-note"
+            maxLength="150"
+            placeholder="VD: Nộp tiền điện tháng 11 vào tài khoản"
+            rows="2"
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+          />
+
+          {value > 0 && value <= available && (
+            <div className="cf-transfer-preview">
+              Sau khi chuyển: Tiền mặt <strong>{formatVND(nextCash)}</strong> · Tài khoản{" "}
+              <strong>{formatVND(nextAccount)}</strong>
+            </div>
+          )}
+
+          {error && <div className="cf-form-error" role="alert">{error}</div>}
+
+          <div className="cf-dialog-actions">
+            <button className="cf-btn cf-btn-quiet" type="button" onClick={onClose}>Hủy</button>
+            <button className="cf-btn cf-btn-primary" type="submit" disabled={busy || available === 0}>
+              {busy ? "Đang chuyển…" : "Xác nhận chuyển"}
+            </button>
           </div>
         </form>
       </section>
@@ -237,44 +325,156 @@ function BankDialog({ onClose }) {
 }
 
 export default function CommonFund() {
+  const { isTreasurer } = useOutletContext();
   const [dialog, setDialog] = useState("");
+  const [busyId, setBusyId] = useState(""); // yêu cầu đang được duyệt/từ chối/hủy
   const [timeScale, setTimeScale] = useState("month");
-  const [selectedPeriodId, setSelectedPeriodId] = useState("2026-11");
+  const [selectedPeriodId, setSelectedPeriodId] = useState("");
   const [pendingRequests, setPendingRequests] = useState([]);
   const [showAccountBalance, setShowAccountBalance] = useState(false);
+  const [fund, setFund] = useState(null); // { cash, account }
+  const [history, setHistory] = useState(null); // { periods, period }
+  const [error, setError] = useState("");
+  const [reload, setReload] = useState(0); // tăng lên để tải lại số dư và biểu đồ
 
-  const total = INITIAL_CASH + INITIAL_ACCOUNT;
-  const cashPercent = Math.round((INITIAL_CASH / total) * 100);
-  const accountPercent = 100 - cashPercent;
-  const periods = TIME_SERIES[timeScale];
-  const selectedPeriod = periods.find((item) => item.id === selectedPeriodId) || periods[0];
-  const largestPoint = Math.max(...selectedPeriod.points.flatMap((point) => [point.cash, point.account]));
-  const chartMax = Math.ceil((largestPoint * 1.1) / 5_000_000) * 5_000_000;
+  // Số dư và các yêu cầu điều chỉnh đang chờ
+  useEffect(() => {
+    let active = true;
+    Promise.all([getFund(), listAdjustments()])
+      .then(([f, a]) => {
+        if (!active) return;
+        setFund({ cash: f.cashBalance, account: f.accountBalance });
+        setPendingRequests(a.adjustments.filter((x) => x.status === "PENDING"));
+        setError("");
+      })
+      .catch((err) => active && setError(err.message));
+    return () => {
+      active = false;
+    };
+  }, [reload]);
+
+  // Biểu đồ theo tuần/tháng đang chọn
+  useEffect(() => {
+    let active = true;
+    getFundHistory(timeScale, selectedPeriodId)
+      .then((data) => active && setHistory(data))
+      .catch((err) => active && setError(err.message));
+    return () => {
+      active = false;
+    };
+  }, [timeScale, selectedPeriodId, reload]);
+
+  const cash = fund?.cash ?? 0;
+  const account = fund?.account ?? 0;
+  const total = cash + account;
+  const cashPercent = total > 0 ? Math.round((cash / total) * 100) : 0;
+  const accountPercent = total > 0 ? 100 - cashPercent : 0;
+  const periods = history?.periods ?? [];
+  const selectedPeriod = history?.period ?? { id: "", label: "", points: [] };
+  const largestPoint = Math.max(0, ...selectedPeriod.points.flatMap((point) => [point.cash, point.account]));
+  const chartMax = Math.max(1_000_000, Math.ceil((largestPoint * 1.1) / 5_000_000) * 5_000_000);
   const chartTicks = [chartMax, (chartMax * 2) / 3, chartMax / 3, 0];
   const formatChartAxis = (value) => value === 0
     ? "0"
     : `${(value / 1_000_000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} tr`;
 
-  const submitAdjustment = (request) => {
-    setPendingRequests((current) => [
-      { ...request, id: crypto.randomUUID(), requestedAt: new Date().toLocaleString("vi-VN") },
-      ...current,
-    ]);
+  // Ném lỗi ra để hộp thoại hiện thông báo dưới form
+  const submitAdjustment = async (payload) => {
+    const { adjustment } = await createAdjustment(payload);
     setDialog("");
+    // Phòng chỉ có một người thì được áp dụng ngay, tải lại số dư và biểu đồ
+    if (adjustment.status === "PENDING") {
+      setPendingRequests((current) => [adjustment, ...current]);
+    } else {
+      setReload((n) => n + 1);
+    }
+  };
+
+  // Hủy (thủ quỹ), duyệt hoặc từ chối (thành viên) một yêu cầu đang chờ
+  const actOnRequest = async (id, action) => {
+    setBusyId(id);
+    try {
+      const { adjustment } = await action(id);
+      if (adjustment.status === "PENDING") {
+        setPendingRequests((current) =>
+          current.map((item) => (item._id === id ? adjustment : item)),
+        );
+      } else {
+        setPendingRequests((current) => current.filter((item) => item._id !== id));
+        // Đủ người duyệt thì số dư đã đổi
+        if (adjustment.status === "APPROVED") setReload((n) => n + 1);
+      }
+    } catch (err) {
+      setError(err.message);
+      setReload((n) => n + 1);
+    } finally {
+      setBusyId("");
+    }
+  };
+
+  const changeScale = (scale) => {
+    setTimeScale(scale);
+    setSelectedPeriodId("");
   };
 
   return (
     <div className="cf-page">
+      {error && (
+        <div className="cf-form-error" role="alert">
+          {error}{" "}
+          <button className="cf-btn cf-btn-quiet" type="button" onClick={() => { setError(""); setReload((n) => n + 1); }}>
+            Thử lại
+          </button>
+        </div>
+      )}
+
       {pendingRequests.map((pendingRequest) => (
-        <section className="cf-pending" role="status" key={pendingRequest.id}>
+        <section className="cf-pending" role="status" key={pendingRequest._id}>
           <span className="cf-pending-icon"><Icon name="clock" /></span>
           <div className="cf-pending-copy">
-            <strong>Yêu cầu điều chỉnh đang chờ duyệt</strong>
+            <strong>
+              {isTreasurer
+                ? "Yêu cầu điều chỉnh đang chờ duyệt"
+                : `${pendingRequest.requestedBy?.fullName || "Thủ quỹ"} đề nghị điều chỉnh số dư`}
+            </strong>
             <span>
-              {pendingRequest.source === "cash" ? "Tiền mặt" : "Tiền tài khoản"}: {formatVND(pendingRequest.currentBalance)} → {formatVND(pendingRequest.newBalance)} · {pendingRequest.reason} · Gửi lúc {pendingRequest.requestedAt}
+              {SOURCE_TEXT[pendingRequest.source]}: {formatVND(pendingRequest.oldBalance)} → {formatVND(pendingRequest.newBalance)} · {pendingRequest.reason} · Gửi lúc {new Date(pendingRequest.createdAt).toLocaleString("vi-VN")}
             </span>
           </div>
-          <span className="cf-pending-status">Chờ tất cả thành viên duyệt</span>
+          <span className="cf-pending-status">
+            Đã duyệt {pendingRequest.approvedCount}/{pendingRequest.memberCount} thành viên
+          </span>
+          {isTreasurer ? (
+            <button
+              className="cf-btn cf-btn-quiet"
+              type="button"
+              disabled={busyId === pendingRequest._id}
+              onClick={() => actOnRequest(pendingRequest._id, cancelAdjustment)}
+            >
+              Hủy
+            </button>
+          ) : pendingRequest.myApproved ? (
+            <span className="cf-pending-status">Bạn đã duyệt</span>
+          ) : (
+            <>
+              <button
+                className="cf-btn cf-btn-quiet"
+                type="button"
+                disabled={busyId === pendingRequest._id}
+                onClick={() => actOnRequest(pendingRequest._id, rejectAdjustment)}
+              >
+                Từ chối
+              </button>
+              <button
+                className="cf-btn cf-btn-primary"
+                type="button"
+                disabled={busyId === pendingRequest._id}
+                onClick={() => actOnRequest(pendingRequest._id, approveAdjustment)}
+              >
+                Duyệt
+              </button>
+            </>
+          )}
         </section>
       ))}
 
@@ -302,19 +502,26 @@ export default function CommonFund() {
             <div className="cf-legend">
               <div className="cf-legend-item">
                 <span className="cf-legend-name"><i className="cf-dot cash" />Tiền mặt</span>
-                <strong>{formatVND(INITIAL_CASH)}</strong>
+                <strong>{formatVND(cash)}</strong>
                 <small>{cashPercent}% tổng quỹ</small>
               </div>
               <div className="cf-legend-item">
                 <span className="cf-legend-name"><i className="cf-dot account" />Tiền tài khoản</span>
-                <strong>{formatVND(INITIAL_ACCOUNT)}</strong>
+                <strong>{formatVND(account)}</strong>
                 <small>{accountPercent}% tổng quỹ</small>
               </div>
             </div>
           </div>
-          <button className="cf-btn cf-btn-quiet cf-adjust-button" type="button" onClick={() => setDialog("adjust")}>
-            <Icon name="sliders" /> Điều chỉnh số dư
-          </button>
+          {isTreasurer && (
+            <div className="cf-balance-actions">
+              <button className="cf-btn cf-btn-quiet cf-adjust-button" type="button" onClick={() => setDialog("transfer")}>
+                <Icon name="swap" /> Chuyển đổi
+              </button>
+              <button className="cf-btn cf-btn-quiet cf-adjust-button" type="button" onClick={() => setDialog("adjust")}>
+                <Icon name="sliders" /> Điều chỉnh số dư
+              </button>
+            </div>
+          )}
         </article>
 
         <article className="cf-wallet-card">
@@ -334,10 +541,11 @@ export default function CommonFund() {
             <div className="cf-linked-main">
               <div className="cf-linked-name"><strong>{INTEGRATED_BANK.name}</strong><span className="cf-linked-badge"><i />Đã tích hợp</span></div>
               <span className="cf-linked-number">•••• •••• 4208 · Tài khoản thủ quỹ</span>
+              {isTreasurer && (
               <div className="cf-account-balance">
                 <div>
                   <span>Số dư tài khoản</span>
-                  <strong>{showAccountBalance ? formatVND(BANK_ACCOUNT_BALANCE) : "•••••••• ₫"}</strong>
+                  <strong>{showAccountBalance ? formatVND(DEMO_BANK_BALANCE) : "•••••••• ₫"}</strong>
                 </div>
                 <button
                   className="cf-reveal-balance"
@@ -350,20 +558,25 @@ export default function CommonFund() {
                   <Icon name={showAccountBalance ? "eye-off" : "eye"} />
                 </button>
               </div>
+              )}
             </div>
           </div>
 
           <div className="cf-account-breakdown">
-            <div><span>Tiền quỹ phòng trong tài khoản</span><strong>{formatVND(INITIAL_ACCOUNT)}</strong></div>
-            <div><span>Tiền riêng của thủ quỹ</span><strong>{formatVND(TREASURER_PERSONAL_BALANCE)}</strong></div>
+            <div><span>Tiền quỹ phòng trong tài khoản</span><strong>{formatVND(DEMO_FUND_IN_ACCOUNT)}</strong></div>
+            {isTreasurer && (
+              <div><span>Tiền riêng của thủ quỹ</span><strong>{formatVND(DEMO_TREASURER_PERSONAL)}</strong></div>
+            )}
           </div>
 
           <div className="cf-wallet-empty-hint">
             <Icon name="shield" /> Tài khoản này do thủ quỹ quản lý.
           </div>
-          <button className="cf-add-account" type="button" onClick={() => setDialog("bank")}>
-            <span><Icon name="plus" /> Tích hợp tài khoản khác</span><Icon name="chevron-right" />
-          </button>
+          {isTreasurer && (
+            <button className="cf-add-account" type="button" onClick={() => setDialog("bank")}>
+              <span><Icon name="plus" /> Tích hợp tài khoản khác</span><Icon name="chevron-right" />
+            </button>
+          )}
         </article>
       </section>
 
@@ -379,7 +592,7 @@ export default function CommonFund() {
                 className={timeScale === "week" ? "active" : ""}
                 type="button"
                 aria-pressed={timeScale === "week"}
-                onClick={() => { setTimeScale("week"); setSelectedPeriodId(TIME_SERIES.week[0].id); }}
+                onClick={() => changeScale("week")}
               >
                 Tuần
               </button>
@@ -387,7 +600,7 @@ export default function CommonFund() {
                 className={timeScale === "month" ? "active" : ""}
                 type="button"
                 aria-pressed={timeScale === "month"}
-                onClick={() => { setTimeScale("month"); setSelectedPeriodId(TIME_SERIES.month[0].id); }}
+                onClick={() => changeScale("month")}
               >
                 Tháng
               </button>
@@ -447,8 +660,20 @@ export default function CommonFund() {
         </div>
       </section>
 
-      {dialog === "adjust" && <AdjustmentDialog onClose={() => setDialog("")} onSubmit={submitAdjustment} />}
+      {dialog === "adjust" && <AdjustmentDialog cash={cash} account={account} onClose={() => setDialog("")} onSubmit={submitAdjustment} />}
       {dialog === "bank" && <BankDialog onClose={() => setDialog("")} />}
+      {dialog === "transfer" && (
+        <TransferDialog
+          cash={cash}
+          account={account}
+          onClose={() => setDialog("")}
+          onDone={(result) => {
+            setFund({ cash: result.cashBalance, account: result.accountBalance });
+            setDialog("");
+            setReload((n) => n + 1); // vẽ lại biểu đồ
+          }}
+        />
+      )}
     </div>
   );
 }
