@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 import Room from "../room/roomModel.js";
 import Duty from "./dutyModel.js";
+import { notify, notifyRoom } from "../notification/notify.js";
+
+// "2026-11-26" -> "26/11"
+const dm = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}`;
 
 const same = (a, b) => String(a) === String(b);
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -144,6 +148,17 @@ export async function createDuty(req, res) {
     createdBy: user._id,
   });
   const full = await populateAssignee(Duty.findById(created._id));
+  await notify({
+    users: [assigneeId],
+    room: user.roomJoined,
+    type: "DUTY",
+    message: `${user.fullName} giao cho bạn "${title}" ngày ${dm(date)}`,
+    link: "/viec-phong",
+    actor: user._id,
+    self: same(assigneeId, user._id)
+      ? `Bạn đã tự nhận "${title}" ngày ${dm(date)}`
+      : `Bạn đã giao "${title}" cho ${full.assignee?.fullName} ngày ${dm(date)}`,
+  });
   return res.status(201).json({ duty: toDto(full) });
 }
 
@@ -207,6 +222,31 @@ export async function createRotation(req, res) {
   }));
   const created = await Duty.insertMany(docs);
 
+  // Mỗi người nhận một tin: số lượt trực của mình trong lịch này
+  const turns = {};
+  for (const d of docs) (turns[d.assignee] ||= []).push(d.date);
+  for (const [memberId, dates] of Object.entries(turns)) {
+    await notify({
+      users: [memberId],
+      room: user.roomJoined,
+      type: "DUTY",
+      message:
+        dates.length === 1
+          ? `Bạn có lượt trực "${title}" ngày ${dm(dates[0])}`
+          : `Bạn có ${dates.length} lượt trực "${title}" từ ${dm(dates[0])} đến ${dm(dates.at(-1))}`,
+      link: "/viec-phong",
+      actor: user._id,
+    });
+  }
+  await notify({
+    room: user.roomJoined,
+    type: "DUTY",
+    message: "",
+    link: "/viec-phong",
+    actor: user._id,
+    self: `Bạn đã xếp lịch xoay vòng "${title}" ${days} ngày từ ${dm(startDate)}`,
+  });
+
   const full = await populateAssignee(
     Duty.find({ _id: { $in: created.map((d) => d._id) } }).sort({ date: 1 }),
   );
@@ -262,8 +302,20 @@ export async function updateDuty(req, res) {
     duty.assignee = body.assigneeId;
   }
 
+  const reassigned = duty.isModified("assignee");
   await duty.save();
   const full = await populateAssignee(Duty.findById(duty._id));
+  await notify({
+    users: reassigned ? [duty.assignee] : [],
+    room: user.roomJoined,
+    type: "DUTY",
+    message: `${user.fullName} giao cho bạn "${duty.title}" ngày ${dm(duty.date)}`,
+    link: "/viec-phong",
+    actor: user._id,
+    self: reassigned
+      ? `Bạn đã giao lại "${duty.title}" ngày ${dm(duty.date)} cho ${full.assignee?.fullName}`
+      : `Bạn đã sửa việc "${duty.title}" ngày ${dm(duty.date)}`,
+  });
   return res.json({ duty: toDto(full) });
 }
 
@@ -292,11 +344,32 @@ export async function updateDutyStatus(req, res) {
       .json({ message: "Chỉ người được giao hoặc thủ quỹ mới đổi được trạng thái" });
   }
 
-  duty.status = status;
+  const changed = duty.status !== status;
   duty.doneAt = status === "DONE" ? new Date() : null;
+  duty.status = status;
   await duty.save();
 
   const full = await populateAssignee(Duty.findById(duty._id));
+
+  // Tick xong / bỏ tick: cả phòng đều biết
+  if (changed) {
+    const done = status === "DONE";
+    const mine = same(duty.assignee, user._id);
+    const owner = full.assignee?.fullName || "thành viên đã rời phòng";
+    const what = `"${duty.title}" ngày ${dm(duty.date)}`;
+    await notifyRoom(user.roomJoined, {
+      type: "DUTY",
+      message: mine
+        ? `${user.fullName} ${done ? "đã làm xong" : "bỏ đánh dấu xong"} ${what}`
+        : `${user.fullName} ${done ? "đã đánh dấu xong" : "bỏ đánh dấu xong"} ${what} của ${owner}`,
+      link: "/viec-phong",
+      actor: user._id,
+      self: mine
+        ? `Bạn ${done ? "đã làm xong" : "bỏ đánh dấu xong"} ${what}`
+        : `Bạn ${done ? "đã đánh dấu xong" : "bỏ đánh dấu xong"} ${what} của ${owner}`,
+    });
+  }
+
   return res.json({ duty: toDto(full) });
 }
 
@@ -307,10 +380,24 @@ export async function deleteDuty(req, res) {
   if (!mongoose.isValidObjectId(id)) {
     return res.status(400).json({ message: "Mã không hợp lệ" });
   }
-  const result = await Duty.deleteOne({ _id: id, room: req.user.roomJoined });
-  if (!result.deletedCount) {
+  const removed = await Duty.findOneAndDelete({
+    _id: id,
+    room: req.user.roomJoined,
+  });
+  if (!removed) {
     return res.status(404).json({ message: "Không tìm thấy công việc" });
   }
+  // Người được giao chỉ cần biết khi việc chưa làm và chưa qua ngày
+  const upcoming = removed.status === "TODO" && removed.date >= todayVN();
+  await notify({
+    users: upcoming ? [removed.assignee] : [],
+    room: req.user.roomJoined,
+    type: "DUTY",
+    message: `Việc "${removed.title}" ngày ${dm(removed.date)} của bạn đã được hủy`,
+    link: "/viec-phong",
+    actor: req.user._id,
+    self: `Bạn đã xóa việc "${removed.title}" ngày ${dm(removed.date)}`,
+  });
   return res.json({ message: "Đã xóa công việc" });
 }
 

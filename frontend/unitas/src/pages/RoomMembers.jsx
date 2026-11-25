@@ -12,7 +12,7 @@ const ROLE_LABEL = { TREASURER: "Thủ quỹ", MEMBER: "Thành viên" };
 const same = (a, b) => String(a) === String(b);
 
 export default function RoomMembers() {
-  const { me, room, onRoomChange } = useOutletContext();
+  const { me, room, isTreasurer, onRoomChange } = useOutletContext();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [dialog, setDialog] = useState(null);
@@ -50,7 +50,7 @@ export default function RoomMembers() {
         </div>
       )}
 
-      <div className="db-grid2 db-member-panels">
+      <div className={isTreasurer ? "db-grid2 db-member-panels" : undefined}>
         <section className="db-card">
           <div className="db-card-heading">
             <h2>Danh sách thành viên</h2>
@@ -81,7 +81,7 @@ export default function RoomMembers() {
                   >
                     {ROLE_LABEL[member.roleInRoom] || "Thành viên"}
                   </span>
-                  {!isMe && (
+                  {isTreasurer && !isMe && (
                     <button
                       className="db-btn db-btn--ghost db-btn--sm"
                       type="button"
@@ -97,6 +97,7 @@ export default function RoomMembers() {
           </ul>
         </section>
 
+        {isTreasurer && (
         <section className="db-card">
           <div className="db-card-heading">
             <h2>Yêu cầu tham gia</h2>
@@ -138,6 +139,7 @@ export default function RoomMembers() {
             </ul>
           )}
         </section>
+        )}
       </div>
 
       {dialog?.type === "transfer" && (

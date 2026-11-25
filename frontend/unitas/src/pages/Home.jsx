@@ -3,7 +3,6 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/unitas-logo-white.png";
 import PendingView from "../components/PendingView";
 import RoomSetup from "../components/RoomSetup";
-import RoomView from "../components/RoomView";
 import UserMenu from "../components/UserMenu";
 import DashboardLayout from "../components/DashboardLayout";
 import { getMe, logout } from "../services/authApi";
@@ -119,11 +118,12 @@ export default function Home() {
     room?.listMember?.find((m) => String(m._id) === String(user._id))
       ?.roleInRoom || null;
 
-  if (pathname !== "/" && (!room || myRole !== "TREASURER")) {
+  if (pathname !== "/" && !room) {
     return <Navigate to="/" replace />;
   }
 
-  if (room && myRole === "TREASURER") {
+  // Thủ quỹ và thành viên dùng chung giao diện, mỗi trang tự ẩn nút theo vai trò
+  if (room && myRole) {
     return (
       <DashboardLayout
         me={user}
@@ -164,15 +164,6 @@ export default function Home() {
           Thử lại
         </button>
       </div>
-    );
-  } else if (room) {
-    content = (
-      <RoomView
-        room={room}
-        user={user}
-        onChange={setRoom}
-        onLeft={() => setRoom(null)}
-      />
     );
   } else if (pending) {
     content = (

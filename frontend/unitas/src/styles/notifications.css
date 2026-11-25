@@ -1,0 +1,332 @@
+/* Chuông thông báo. Dùng biến màu --db-* của dashboardShell.css nên tự theo sáng/tối */
+
+/* ---------- Nút chuông ---------- */
+.db-app .nb-bell {
+  position: relative;
+  border: 1px solid var(--db-line);
+  color: var(--db-ink);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.db-app .nb-bell:hover,
+.db-app .nb-bell.is-open {
+  border-color: var(--db-gold);
+}
+
+.db-app .nb-bell-icon {
+  display: grid;
+  place-items: center;
+}
+
+.db-app .nb-bell-icon .db-i {
+  width: 20px;
+  height: 20px;
+}
+
+.db-app .nb-ring {
+  animation: nb-ring 0.9s ease-in-out;
+  transform-origin: 50% 4px;
+}
+
+@keyframes nb-ring {
+  0%, 100% { transform: rotate(0); }
+  15% { transform: rotate(14deg); }
+  30% { transform: rotate(-12deg); }
+  45% { transform: rotate(8deg); }
+  60% { transform: rotate(-5deg); }
+  75% { transform: rotate(2deg); }
+}
+
+/* Số chưa đọc: viên nhỏ ở góc, viền cùng màu nền để tách khỏi nút */
+.db-app .nb-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: grid;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  place-items: center;
+  border: 2px solid var(--db-bg);
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  box-sizing: border-box;
+}
+
+/* ---------- Bảng thông báo ---------- */
+.db-app .nb-pop {
+  width: 380px;
+}
+
+.db-app .nb-pop header.nb-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 10px;
+  border-bottom: 0;
+}
+
+.db-app .nb-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.db-app .nb-title strong {
+  font-size: 15px;
+}
+
+.db-app .nb-count {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgb(239 68 68 / 12%);
+  color: #ef4444;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.db-app .nb-read-all {
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--db-gold-dark);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.db-app .nb-read-all:hover {
+  background: var(--db-field);
+}
+
+.db-app .nb-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 12px 10px;
+  border-bottom: 1px solid var(--db-line);
+}
+
+.db-app .nb-tab {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--db-muted);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.db-app .nb-tab:hover {
+  background: var(--db-field);
+}
+
+.db-app .nb-tab.is-active {
+  background: var(--db-ink);
+  color: var(--db-card);
+}
+
+.db-app .nb-body {
+  max-height: min(440px, calc(100vh - 180px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.db-app .nb-group {
+  padding: 12px 16px 4px;
+  color: var(--db-muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.db-app .nb-list {
+  margin: 0;
+  padding: 0 6px 6px;
+  list-style: none;
+}
+
+.db-app .nb-item {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--db-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.db-app .nb-item:hover {
+  background: var(--db-field);
+}
+
+.db-app .nb-item.is-unread {
+  background: rgb(245 184 0 / 8%);
+}
+
+.db-app .nb-item.is-unread:hover {
+  background: rgb(245 184 0 / 14%);
+}
+
+/* Ảnh người làm + huy hiệu loại sự kiện ở góc */
+.db-app .nb-visual {
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 36px;
+}
+
+.db-app .nb-visual .db-avatar {
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.db-app .nb-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 999px;
+}
+
+.db-app .nb-icon .db-i {
+  width: 17px;
+  height: 17px;
+}
+
+.db-app .nb-type {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  width: 19px;
+  height: 19px;
+  place-items: center;
+  border: 2px solid var(--db-card);
+  border-radius: 999px;
+  box-sizing: content-box;
+}
+
+.db-app .nb-type .db-i {
+  width: 11px;
+  height: 11px;
+  stroke-width: 2.2;
+}
+
+.db-app .nb-icon--fund,
+.db-app .nb-type--fund {
+  background: #f5b800;
+  color: #1a1400;
+}
+
+.db-app .nb-icon--duty,
+.db-app .nb-type--duty {
+  background: #3fa45a;
+  color: #fff;
+}
+
+.db-app .nb-icon--room,
+.db-app .nb-type--room {
+  background: #4a6fd6;
+  color: #fff;
+}
+
+.db-app .nb-icon--account,
+.db-app .nb-type--account {
+  background: #8b5cf6;
+  color: #fff;
+}
+
+.db-app .nb-text {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.db-app .nb-msg {
+  color: var(--db-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.db-app .nb-item.is-unread .nb-msg {
+  color: var(--db-ink);
+  font-weight: 600;
+}
+
+.db-app .nb-time {
+  color: var(--db-muted);
+  font-size: 11.5px;
+}
+
+.db-app .nb-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: #ef4444;
+}
+
+.db-app .nb-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 24px;
+  color: var(--db-muted);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.db-app .nb-empty-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--db-field);
+}
+
+.db-app .nb-empty-icon .db-i {
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 480px) {
+  .db-app .nb-pop {
+    position: fixed;
+    top: 68px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .db-app .nb-ring {
+    animation: none;
+  }
+}

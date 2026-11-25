@@ -1,0 +1,1263 @@
+.cf-page {
+  --cf-gold: #e4aa00;
+  --cf-green: #1d8b67;
+  --cf-blue: #5c7cf4;
+  color: var(--db-ink);
+}
+
+.cf-page button {
+  font: inherit;
+}
+
+.cf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.cf-btn {
+  min-height: 42px;
+  justify-content: center;
+  padding: 9px 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background 0.16s, border-color 0.16s, transform 0.16s;
+}
+
+.cf-btn:active {
+  transform: translateY(1px);
+}
+
+.cf-btn .db-i {
+  width: 16px;
+  height: 16px;
+}
+
+.cf-btn-primary {
+  background: #171714;
+  color: #fff !important;
+}
+
+.cf-btn-primary:hover {
+  background: #34342e;
+}
+
+.cf-btn-quiet {
+  border-color: var(--db-line);
+  background: var(--db-card);
+  color: var(--db-ink) !important;
+}
+
+.cf-btn-quiet:hover {
+  background: var(--db-field);
+}
+
+.cf-pending {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border: 1px solid #efdca2;
+  border-radius: 12px;
+  background: #fff9e8;
+}
+
+.cf-pending-icon,
+.cf-note-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  color: #a77d00;
+}
+
+.cf-pending-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: #f7edc9;
+}
+
+.cf-pending-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cf-pending-copy strong {
+  font-size: 12.5px;
+}
+
+.cf-pending-copy span {
+  overflow: hidden;
+  color: var(--db-muted);
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cf-pending-status {
+  flex: none;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #f6e8b5;
+  color: #775c00;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.cf-overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.cf-balance-card,
+.cf-wallet-card,
+.cf-history-card {
+  min-width: 0;
+  border: 1px solid var(--db-line);
+  border-radius: 16px;
+  background: var(--db-card);
+  box-shadow: var(--db-shadow);
+}
+
+.cf-balance-card {
+  position: relative;
+  overflow: hidden;
+  padding: 22px 24px 16px;
+  border-color: #171714;
+  background:
+    radial-gradient(ellipse at 92% 3%, rgb(228 170 0 / 20%), transparent 35%),
+    #171714;
+  color: #fff;
+}
+
+.cf-balance-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cf-overline {
+  display: block;
+  color: var(--db-muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cf-balance-card .cf-overline {
+  color: #aaa99f;
+}
+
+.cf-balance-top h3 {
+  margin: 8px 0 0;
+  color: #fff;
+  font-size: clamp(24px, 3vw, 33px);
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+
+.cf-balance-mark {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 7%);
+  color: #f3c73f;
+}
+
+.cf-balance-divider {
+  height: 1px;
+  margin: 19px 0 17px;
+  background: rgb(255 255 255 / 12%);
+}
+
+.cf-chart-layout {
+  display: flex;
+  align-items: center;
+  gap: clamp(22px, 4vw, 38px);
+}
+
+.cf-donut {
+  display: grid;
+  width: 154px;
+  height: 154px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(
+    #e7b71e 0 var(--cash-percent),
+    #44a988 var(--cash-percent) 100%
+  );
+  transform: rotate(-90deg);
+}
+
+.cf-donut-center {
+  display: flex;
+  width: 112px;
+  height: 112px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #171714;
+  transform: rotate(90deg);
+}
+
+.cf-donut-center strong {
+  max-width: 90px;
+  color: #fff;
+  font-size: 14px;
+  letter-spacing: -0.02em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.cf-legend {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cf-legend-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+.cf-legend-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #d3d2cb;
+  font-size: 12px;
+}
+
+.cf-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+}
+
+.cf-dot.cash {
+  background: #e7b71e;
+}
+
+.cf-dot.account {
+  background: #44a988;
+}
+
+.cf-legend-item > strong {
+  color: #fff;
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+
+.cf-legend-item > small {
+  grid-column: 1 / -1;
+  margin-left: 16px;
+  color: #8b8b82;
+  font-size: 10.5px;
+}
+
+.cf-adjust-button {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.cf-wallet-card {
+  display: flex;
+  flex-direction: column;
+  padding: 21px 22px 16px;
+}
+
+.cf-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cf-section-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.cf-section-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  place-items: center;
+  border-radius: 12px;
+  background: #edf5f1;
+  color: #167851;
+}
+
+.cf-section-heading h3,
+.cf-history-header h3 {
+  margin: 0;
+  font-size: 15px;
+  letter-spacing: -0.015em;
+}
+
+.cf-section-heading p,
+.cf-history-header p {
+  margin: 4px 0 0;
+  color: var(--db-muted);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.cf-account-count {
+  flex: none;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: var(--db-field);
+  color: var(--db-muted);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.cf-linked-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 13px;
+  padding: 14px 12px;
+  border: 1px solid var(--db-line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--db-field) 55%, var(--db-card));
+}
+
+.cf-bank-mark {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--bank-color, #333);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.cf-bank-mark-large {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  font-size: 10px;
+}
+
+.cf-linked-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.cf-linked-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.cf-linked-name > strong {
+  font-size: 12px;
+}
+
+.cf-linked-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: #e8f6ee;
+  color: #21754d;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.cf-linked-badge i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #279562;
+}
+
+.cf-linked-number {
+  display: block;
+  margin-top: 3px;
+  color: var(--db-muted);
+  font-size: 10px;
+}
+
+.cf-account-balance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--db-line);
+}
+
+.cf-account-balance > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cf-account-balance > div > span {
+  color: var(--db-muted);
+  font-size: 9.5px;
+}
+
+.cf-account-balance > div > strong {
+  font-size: 13px;
+  letter-spacing: -0.015em;
+}
+
+.cf-reveal-balance {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--db-muted);
+}
+
+.cf-reveal-balance:hover {
+  background: var(--db-field);
+  color: var(--db-ink);
+}
+
+.cf-account-breakdown {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 13px 54px;
+}
+
+.cf-account-breakdown > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid var(--db-line);
+  font-size: 10px;
+}
+
+.cf-account-breakdown > div > span {
+  color: var(--db-muted);
+}
+
+.cf-account-breakdown > div > strong {
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.cf-icon-button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  place-items: center;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--db-muted);
+}
+
+.cf-icon-button:hover {
+  background: var(--db-field);
+  color: var(--db-ink);
+}
+
+.cf-account-action {
+  align-self: flex-start;
+  margin: -4px -4px 0 0;
+}
+
+.cf-wallet-empty-hint {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 12px;
+  color: var(--db-muted);
+  font-size: 10px;
+}
+
+.cf-wallet-empty-hint .db-i {
+  width: 14px;
+  height: 14px;
+  color: #87877e;
+}
+
+.cf-add-account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin-top: auto;
+  padding: 11px 0 1px;
+  border: 0;
+  border-top: 1px solid var(--db-line);
+  background: transparent;
+  color: var(--db-ink);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.cf-add-account > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.cf-add-account .db-i {
+  width: 15px;
+  height: 15px;
+  color: #967300;
+}
+
+.cf-add-account:hover {
+  color: #987000;
+}
+
+.cf-history-card {
+  padding: 21px 22px 12px;
+}
+
+.cf-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.cf-history-header h3 {
+  margin-top: 5px;
+  font-size: 16px;
+}
+
+.cf-history-header p {
+  margin-top: 5px;
+  font-size: 11px;
+}
+
+.cf-history-controls {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.cf-period-tabs {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--db-line);
+  border-radius: 9px;
+  background: var(--db-field);
+}
+
+.cf-period-tabs button {
+  min-height: 29px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--db-muted);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.cf-period-tabs button.active {
+  background: var(--db-card);
+  color: var(--db-ink);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 9%);
+}
+
+.cf-month-picker {
+  display: flex;
+  min-height: 37px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid var(--db-line);
+  border-radius: 9px;
+  background: var(--db-card);
+  color: var(--db-muted);
+}
+
+.cf-month-picker .db-i {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+
+.cf-month-picker select {
+  max-width: 150px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--db-ink);
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 650;
+}
+
+.cf-chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 20px 0 -10px 52px;
+}
+
+.cf-chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--db-muted);
+  font-size: 10px;
+}
+
+.cf-column-chart {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 13px;
+  margin-top: 26px;
+  padding: 0 8px 0 0;
+}
+
+.cf-y-axis {
+  display: flex;
+  height: 184px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-bottom: 2px;
+  color: var(--db-muted);
+  font-size: 9px;
+  text-align: right;
+}
+
+.cf-chart-plot {
+  position: relative;
+  min-width: 0;
+  padding: 0 12px;
+}
+
+.cf-chart-gridlines {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 184px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.cf-chart-gridlines i {
+  display: block;
+  height: 1px;
+  background: var(--db-line);
+}
+
+.cf-columns {
+  position: relative;
+  display: grid;
+  gap: 6px;
+}
+
+.cf-time-group {
+  min-width: 0;
+  text-align: center;
+}
+
+.cf-time-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  height: 184px;
+}
+
+.cf-time-bar {
+  width: min(22px, 38%);
+  min-height: 3px;
+  border-radius: 9px 9px 3px 3px;
+  transition: height 0.3s ease;
+}
+
+.cf-time-bar.cash-bar {
+  background: linear-gradient(180deg, #f3cf61, #d9a700);
+}
+
+.cf-time-bar.account-bar {
+  background: linear-gradient(180deg, #5eb795, #248c68);
+}
+
+.cf-time-label {
+  display: block;
+  margin-top: 9px;
+  color: var(--db-muted);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+/* Dialogs */
+.cf-overlay {
+  position: fixed;
+  z-index: 60;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 22px;
+  background: rgb(16 17 15 / 52%);
+  backdrop-filter: blur(3px);
+}
+
+.cf-dialog {
+  width: 100%;
+  max-width: 470px;
+  max-height: calc(100vh - 44px);
+  overflow: auto;
+  padding: 23px;
+  border: 1px solid var(--db-line);
+  border-radius: 18px;
+  background: var(--db-card);
+  box-shadow: 0 25px 75px rgb(0 0 0 / 25%);
+  animation: cf-dialog-in 0.18s ease-out;
+}
+
+@keyframes cf-dialog-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+
+.cf-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 11px;
+}
+
+.cf-dialog-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 13px;
+  background: #f5edcf;
+  color: #987300;
+}
+
+.cf-dialog-icon .db-i {
+  width: 20px;
+  height: 20px;
+}
+
+.cf-dialog > h2 {
+  margin: 0;
+  font-size: 19px;
+  letter-spacing: -0.025em;
+}
+
+.cf-dialog-copy {
+  margin: 7px 0 19px;
+  color: var(--db-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.cf-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.cf-field-label {
+  margin: 0 0 7px;
+  color: var(--db-ink);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.cf-form select,
+.cf-form input,
+.cf-form textarea {
+  width: 100%;
+  border: 1px solid var(--db-line);
+  border-radius: 9px;
+  background: var(--db-field);
+  color: var(--db-ink);
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+.cf-form-static {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid var(--db-line);
+  border-radius: 9px;
+  background: var(--db-field);
+  color: var(--db-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.cf-form select,
+.cf-form input {
+  height: 42px;
+  padding: 0 12px;
+}
+
+.cf-form textarea {
+  min-height: 76px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.cf-form select:focus,
+.cf-form input:focus,
+.cf-form textarea:focus {
+  border-color: #bd990e;
+  box-shadow: 0 0 0 3px rgb(228 170 0 / 12%);
+}
+
+.cf-field-label:not(:first-child) {
+  margin-top: 15px;
+}
+
+.cf-form-error {
+  margin-top: 10px;
+  padding: 9px 11px;
+  border: 1px solid #efc2bc;
+  border-radius: 9px;
+  background: #fff4f2;
+  color: #a6342a;
+  font-size: 10.5px;
+}
+
+.cf-input-wrap {
+  position: relative;
+}
+
+.cf-input-wrap input {
+  padding-right: 36px;
+}
+
+.cf-input-wrap > span {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  color: var(--db-muted);
+  font-size: 12px;
+  transform: translateY(-50%);
+}
+
+.cf-approval-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 16px;
+  padding: 11px;
+  border: 1px solid #eee3bf;
+  border-radius: 10px;
+  background: #fffaf0;
+  color: #6d5c25;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.cf-approval-note .db-i {
+  width: 15px;
+  height: 15px;
+}
+
+.cf-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 19px;
+}
+
+.cf-dialog-actions .cf-btn {
+  min-height: 39px;
+  padding: 8px 12px;
+  font-size: 11px;
+}
+
+.cf-bank-options {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.cf-bank-option {
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  gap: 11px;
+  padding: 8px 11px;
+  border: 1px solid var(--db-line);
+  border-radius: 11px;
+  background: var(--db-card);
+  color: var(--db-ink);
+  font-size: 11.5px;
+  font-weight: 650;
+  text-align: left;
+}
+
+.cf-bank-option.selected {
+  border-color: #d5b332;
+  background: #fffcf0;
+}
+
+.cf-radio {
+  width: 16px;
+  height: 16px;
+  margin-left: auto;
+  border: 1px solid #c7c7be;
+  border-radius: 50%;
+}
+
+.cf-bank-option.selected .cf-radio {
+  border: 5px solid #c49a00;
+}
+
+.cf-security-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 13px;
+  color: var(--db-muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.cf-security-note .db-i {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+
+.cf-bank-next-step {
+  text-align: center;
+}
+
+.cf-preview-check {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin: 7px auto 15px;
+  place-items: center;
+  border-radius: 50%;
+  background: #eaf5ee;
+  color: #27814f;
+}
+
+.cf-preview-check .db-i {
+  width: 22px;
+  height: 22px;
+}
+
+.cf-bank-next-step .cf-feature-kicker {
+  margin-bottom: 5px;
+}
+
+.cf-bank-next-step .cf-dialog-copy {
+  max-width: 350px;
+  margin: 8px auto 17px;
+}
+
+.cf-preview-summary {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px;
+  border: 1px solid var(--db-line);
+  border-radius: 11px;
+  text-align: left;
+}
+
+.cf-preview-summary > span:nth-child(2) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+}
+
+.cf-preview-summary small {
+  color: var(--db-muted);
+  font-size: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cf-approval-note {
+    border-color: #4d421b;
+    background: #26210f;
+    color: #e3ce7d;
+  }
+
+  .cf-form-error {
+    border-color: #65302a;
+    background: #301a18;
+    color: #f1978e;
+  }
+
+  .cf-pending {
+    border-color: #534714;
+    background: #211d10;
+  }
+
+  .cf-pending-icon,
+  .cf-pending-status {
+    background: #3a3113;
+    color: #eed269;
+  }
+
+  .cf-section-icon {
+    background: #1a3026;
+    color: #6ac395;
+  }
+
+  .cf-linked-account {
+    background: color-mix(in srgb, var(--db-field) 70%, var(--db-card));
+  }
+
+  .cf-linked-badge {
+    background: #1a3025;
+    color: #73c393;
+  }
+
+  .cf-preview-check {
+    background: #1a3025;
+    color: #73c393;
+  }
+
+  .cf-bank-option.selected {
+    border-color: #78661d;
+    background: #27210f;
+    color: #f0d768;
+  }
+
+  .cf-dialog-icon {
+    background: #342d14;
+    color: #e6c34a;
+  }
+
+}
+
+@media (max-width: 1000px) {
+  .cf-overview-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cf-wallet-card {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .cf-chart-layout {
+    justify-content: space-around;
+  }
+
+  .cf-history-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cf-history-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .cf-period-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cf-period-tabs button {
+    min-width: 0;
+  }
+
+  .cf-month-picker {
+    width: 100%;
+    min-width: 0;
+    justify-content: space-between;
+  }
+
+  .cf-month-picker select {
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .cf-balance-card,
+  .cf-wallet-card,
+  .cf-history-card {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .cf-chart-layout {
+    gap: 18px;
+  }
+
+  .cf-donut {
+    width: 126px;
+    height: 126px;
+  }
+
+  .cf-donut-center {
+    width: 92px;
+    height: 92px;
+  }
+
+  .cf-donut-center strong {
+    font-size: 12px;
+  }
+
+  .cf-legend-item {
+    gap: 3px 5px;
+  }
+
+  .cf-legend-item > strong {
+    font-size: 11.5px;
+  }
+
+  .cf-legend-name {
+    font-size: 11px;
+  }
+
+  .cf-pending {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .cf-pending-status {
+    margin-left: 48px;
+  }
+
+  .cf-column-chart {
+    grid-template-columns: 31px minmax(0, 1fr);
+    gap: 8px;
+    padding-right: 0;
+  }
+
+  .cf-account-breakdown {
+    margin-left: 0;
+  }
+
+  .cf-chart-plot {
+    padding: 0 4px;
+  }
+
+  .cf-columns {
+    gap: 2px;
+  }
+
+  .cf-chart-legend {
+    gap: 13px;
+    margin-left: 39px;
+  }
+
+  .cf-chart-legend span {
+    gap: 5px;
+    font-size: 9px;
+  }
+
+  .cf-time-bars {
+    gap: 2px;
+  }
+
+  .cf-time-bar {
+    width: min(18px, 40%);
+  }
+
+  .cf-time-label {
+    font-size: 8px;
+  }
+
+  .cf-overlay {
+    align-items: flex-end;
+    padding: 10px;
+  }
+
+  .cf-dialog {
+    max-height: calc(100vh - 20px);
+    padding: 19px;
+    border-radius: 17px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-dialog {
+    animation: none;
+  }
+}
+
+/* ---------- Chuyển tiền mặt ↔ tài khoản ---------- */
+.cf-balance-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cf-balance-actions .cf-adjust-button {
+  margin-top: 0;
+}
+
+.cf-transfer-preview {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgb(245 184 0 / 10%);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 480px) {
+  .cf-balance-actions {
+    grid-template-columns: 1fr;
+  }
+}

@@ -58,7 +58,16 @@ export default function DashboardLayout({
         </header>
 
         <main className="db-view">
-          <Outlet context={{ me, room, onRoomChange, onLeft }} />
+          <Outlet
+            context={{
+              me,
+              room,
+              role,
+              isTreasurer: role === "TREASURER",
+              onRoomChange,
+              onLeft,
+            }}
+          />
         </main>
       </div>
     </div>
