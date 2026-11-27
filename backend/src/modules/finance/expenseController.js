@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import Room from "../room/roomModel.js";
 import Expense, { EXPENSE_CATEGORIES } from "./expenseModel.js";
 import Transaction from "./transactionModel.js";
+import { changeFund, parseSource, SOURCE_LABEL } from "./fundBalance.js";
+import { notifyRoom, vnd } from "../notification/notify.js";
 
 // Phải ở trong một phòng; treasurerOnly = true thì phải là thủ quỹ. Trả về false nếu đã gửi lỗi
 function requireRoom(req, res, treasurerOnly = false) {
@@ -41,7 +43,8 @@ export async function listExpenses(req, res) {
   });
 }
 
-// POST /api/finance/expenses { title, amount, category?, date? } -> { expense, fundBalance }
+// POST /api/finance/expenses { title, amount, category?, date?, source? } -> { expense, fundBalance }
+// source: "CASH" (chi tiền mặt) hoặc "ACCOUNT" (chuyển khoản, mặc định)
 export async function createExpense(req, res) {
   if (!requireRoom(req, res, true)) return;
   const user = req.user;
@@ -50,6 +53,11 @@ export async function createExpense(req, res) {
   const amount = Number(req.body?.amount);
   const category = req.body?.category ? String(req.body.category) : "Khác";
   const date = req.body?.date ? new Date(req.body.date) : new Date();
+  const source = parseSource(req.body?.source);
+
+  if (!source) {
+    return res.status(400).json({ message: "Nguồn tiền không hợp lệ" });
+  }
 
   if (!title || title.length > 100) {
     return res
@@ -69,19 +77,15 @@ export async function createExpense(req, res) {
   }
 
   // Trừ quỹ trong một lệnh có điều kiện: không bao giờ âm, không trừ hai lần
-  const room = await Room.findOneAndUpdate(
-    { _id: user.roomJoined, fundBalance: { $gte: amount } },
-    { $inc: { fundBalance: -amount } },
-    { returnDocument: "after" },
-  );
+  const room = await changeFund(user.roomJoined, source, -amount);
   if (!room) {
     const exists = await Room.exists({ _id: user.roomJoined });
     if (!exists) {
       return res.status(404).json({ message: "Không tìm thấy phòng" });
     }
-    return res
-      .status(409)
-      .json({ message: "Quỹ không đủ tiền cho khoản chi này" });
+    return res.status(409).json({
+      message: `${SOURCE_LABEL[source]} không đủ cho khoản chi này`,
+    });
   }
 
   let tx = null;
@@ -91,6 +95,7 @@ export async function createExpense(req, res) {
       room: room._id,
       type: "OUT",
       amount,
+      source,
       description: title,
       createdBy: user._id,
     });
@@ -109,11 +114,19 @@ export async function createExpense(req, res) {
     );
   } catch (err) {
     // Ghi lỗi giữa chừng thì hoàn tiền và dọn bản ghi đã tạo
-    await Room.updateOne({ _id: room._id }, { $inc: { fundBalance: amount } });
+    await changeFund(room._id, source, amount);
     if (tx) await Transaction.deleteOne({ _id: tx._id });
     if (expense) await Expense.deleteOne({ _id: expense._id });
     throw err;
   }
+
+  await notifyRoom(room._id, {
+    type: "FUND",
+    message: `Thủ quỹ đã chi ${vnd(amount)} cho "${title}" (${SOURCE_LABEL[source].toLowerCase()})`,
+    self: `Bạn đã chi ${vnd(amount)} cho "${title}" (${SOURCE_LABEL[source].toLowerCase()})`,
+    link: "/chi-tieu",
+    actor: user._id,
+  });
 
   await expense.populate("createdBy", "fullName");
   return res
@@ -139,17 +152,24 @@ export async function deleteExpense(req, res) {
     return res.status(404).json({ message: "Không tìm thấy khoản chi" });
   }
 
-  const room = await Room.findOneAndUpdate(
-    { _id: user.roomJoined },
-    {
-      $inc: { fundBalance: expense.amount },
-      $pull: { transactionHistory: expense.transaction },
-    },
-    { returnDocument: "after" },
+  // Hoàn về đúng phần quỹ đã chi (tiền mặt hoặc tài khoản)
+  const tx = expense.transaction
+    ? await Transaction.findOneAndDelete({ _id: expense.transaction })
+    : null;
+  const room = await changeFund(
+    user.roomJoined,
+    tx?.source || "ACCOUNT",
+    expense.amount,
+    { $pull: { transactionHistory: expense.transaction } },
   );
-  if (expense.transaction) {
-    await Transaction.deleteOne({ _id: expense.transaction });
-  }
+
+  await notifyRoom(user.roomJoined, {
+    type: "FUND",
+    message: `Thủ quỹ đã xóa khoản chi "${expense.title}" và hoàn ${vnd(expense.amount)} vào quỹ`,
+    self: `Bạn đã xóa khoản chi "${expense.title}" và hoàn ${vnd(expense.amount)} vào quỹ`,
+    link: "/chi-tieu",
+    actor: user._id,
+  });
 
   return res.json({
     message: "Đã xóa khoản chi và hoàn tiền vào quỹ",

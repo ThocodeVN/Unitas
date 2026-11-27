@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 import Room from "../room/roomModel.js";
 import Contribution from "./contributionModel.js";
 import Transaction from "./transactionModel.js";
+import { accountOf, changeFund, parseSource } from "./fundBalance.js";
+import { notify, notifyRoom, vnd } from "../notification/notify.js";
+
+const dayVN = (d) =>
+  new Date(d).toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
 
 const same = (a, b) => String(a) === String(b);
 
@@ -48,12 +53,12 @@ function toDto(c, viewer) {
 const populatePayments = (query) =>
   query.populate("payments.user", "fullName username avatar");
 
-// GET /api/finance/fund -> { fundBalance, transactions }
+// GET /api/finance/fund -> { fundBalance, cashBalance, accountBalance, transactions }
 export async function getFund(req, res) {
   if (!requireRoom(req, res)) return;
   const roomId = req.user.roomJoined;
 
-  const room = await Room.findById(roomId).select("fundBalance");
+  const room = await Room.findById(roomId).select("fundBalance cashBalance");
   if (!room) return res.status(404).json({ message: "Không tìm thấy phòng" });
 
   const transactions = await Transaction.find({ room: roomId })
@@ -64,10 +69,14 @@ export async function getFund(req, res) {
 
   return res.json({
     fundBalance: room.fundBalance,
+    cashBalance: room.cashBalance ?? 0,
+    accountBalance: accountOf(room),
     transactions: transactions.map((t) => ({
       _id: t._id,
       type: t.type,
       amount: t.amount,
+      source: t.source || "ACCOUNT",
+      kind: t.kind || "NORMAL",
       description: t.description,
       member: t.member
         ? { _id: t.member._id, fullName: t.member.fullName }
@@ -122,11 +131,20 @@ export async function createContribution(req, res) {
     payments: room.listMember.map((id) => ({ user: id })),
   });
 
+  await notifyRoom(room._id, {
+    type: "FUND",
+    message: `Khoản đóng mới "${title}": ${vnd(amount)}/người, hạn ${dayVN(dueDate)}`,
+    self: `Bạn đã tạo khoản đóng "${title}": ${vnd(amount)}/người, hạn ${dayVN(dueDate)}`,
+    link: "/khoan-dong",
+    actor: user._id,
+  });
+
   const full = await populatePayments(Contribution.findById(created._id));
   return res.status(201).json({ contribution: toDto(full, user) });
 }
 
-// POST /api/finance/contributions/:id/payments/:userId/confirm -> { contribution }
+// POST /api/finance/contributions/:id/payments/:userId/confirm { source? } -> { contribution }
+// source: "CASH" (nhận tiền mặt) hoặc "ACCOUNT" (chuyển khoản, mặc định)
 export async function confirmPayment(req, res) {
   if (!requireRoom(req, res, true)) return;
   const user = req.user;
@@ -134,6 +152,10 @@ export async function confirmPayment(req, res) {
 
   if (!mongoose.isValidObjectId(id) || !mongoose.isValidObjectId(userId)) {
     return res.status(400).json({ message: "Mã không hợp lệ" });
+  }
+  const source = parseSource(req.body?.source);
+  if (!source) {
+    return res.status(400).json({ message: "Nguồn tiền không hợp lệ" });
   }
 
   // Chỉ đổi UNPAID -> PAID một lần, bấm hai lần không cộng quỹ hai lần
@@ -156,18 +178,15 @@ export async function confirmPayment(req, res) {
       room: user.roomJoined,
       type: "IN",
       amount: before.amount,
+      source,
       description: before.title,
       contribution: before._id,
       member: userId,
       createdBy: user._id,
     });
-    await Room.updateOne(
-      { _id: user.roomJoined },
-      {
-        $inc: { fundBalance: before.amount },
-        $push: { transactionHistory: tx._id },
-      },
-    );
+    await changeFund(user.roomJoined, source, before.amount, {
+      $push: { transactionHistory: tx._id },
+    });
   } catch (err) {
     // Ghi quỹ lỗi thì hoàn lại trạng thái
     await Contribution.updateOne(
@@ -178,6 +197,18 @@ export async function confirmPayment(req, res) {
   }
 
   const full = await populatePayments(Contribution.findById(id));
+  const payer = full?.payments.find((p) => same(p.user?._id, userId))?.user;
+  await notify({
+    users: [userId],
+    room: user.roomJoined,
+    type: "FUND",
+    message: `Thủ quỹ đã xác nhận bạn đóng ${vnd(before.amount)} cho "${before.title}"`,
+    link: "/khoan-dong",
+    actor: user._id,
+    self: same(userId, user._id)
+      ? `Bạn đã ghi nhận mình đóng ${vnd(before.amount)} cho "${before.title}"`
+      : `Bạn đã xác nhận ${payer?.fullName || "thành viên"} đóng ${vnd(before.amount)} cho "${before.title}"`,
+  });
   return res.json({ contribution: toDto(full, user) });
 }
 
@@ -198,5 +229,12 @@ export async function deleteContribution(req, res) {
   }
 
   await c.deleteOne();
+  await notifyRoom(req.user.roomJoined, {
+    type: "FUND",
+    message: `Thủ quỹ đã xóa khoản đóng "${c.title}"`,
+    link: "/khoan-dong",
+    actor: req.user._id,
+    self: `Bạn đã xóa khoản đóng "${c.title}"`,
+  });
   return res.json({ message: "Đã xóa khoản đóng" });
 }

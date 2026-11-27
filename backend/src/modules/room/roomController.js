@@ -6,6 +6,9 @@ import Contribution from "../finance/contributionModel.js";
 import { monthSpent } from "../finance/expenseController.js";
 import { todayDuties, todayVN } from "../duty/dutyController.js";
 import Duty from "../duty/dutyModel.js";
+import { settlePendingAdjustments } from "../finance/adjustmentController.js";
+import Adjustment from "../finance/adjustmentModel.js";
+import { notify, notifyRoom, notifyTreasurer } from "../notification/notify.js";
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // bỏ I, O, 0, 1 cho dễ đọc
 const same = (a, b) => String(a) === String(b);
@@ -124,13 +127,10 @@ export async function getMyRoom(req, res) {
 }
 
 // GET /api/rooms/dashboard -> real dashboard totals available from the room model
+// Mọi người trong phòng đều xem được; thành viên thường chỉ thấy khoản sắp hạn của mình
 export async function getDashboardSummary(req, res) {
   const user = req.user;
-  if (user.roleInRoom !== "TREASURER") {
-    return res
-      .status(403)
-      .json({ message: "Chỉ thủ quỹ mới được xem bảng tổng quan quản lý" });
-  }
+  const isTreasurer = user.roleInRoom === "TREASURER";
   if (!user.roomJoined) {
     return res.status(404).json({ message: "Bạn chưa ở trong phòng nào" });
   }
@@ -172,6 +172,7 @@ export async function getDashboardSummary(req, res) {
     if (c.dueDate > soon) continue;
     for (const p of c.payments) {
       if (p.status !== "UNPAID" || !p.user) continue;
+      if (!isTreasurer && !same(p.user._id, user._id)) continue;
       dueSoon.push({
         id: `${c._id}-${p.user._id}`,
         name: p.user.fullName,
@@ -223,6 +224,14 @@ export async function createRoom(req, res) {
   user.roomJoined = room._id;
   user.roleInRoom = "TREASURER";
   await user.save();
+  await notify({
+    room: room._id,
+    type: "ROOM",
+    message: "",
+    link: "/cai-dat",
+    actor: user._id,
+    self: `Bạn đã tạo phòng ${roomName}. Gửi mã mời ${room.inviteCode} cho bạn cùng phòng nhé`,
+  });
 
   return res.status(201).json({
     message: "Đã tạo phòng",
@@ -256,6 +265,13 @@ export async function joinRoom(req, res) {
     { _id: room._id },
     { $push: { pendingMembers: { user: user._id, requestedAt } } },
   );
+  await notifyTreasurer(room._id, {
+    type: "ROOM",
+    message: `${user.fullName} xin tham gia phòng`,
+    self: `Bạn đã gửi yêu cầu tham gia phòng ${room.roomName}`,
+    link: "/thanh-vien",
+    actor: user._id,
+  });
 
   return res.json({
     message: "Đã gửi yêu cầu, vui lòng chờ thủ quỹ duyệt",
@@ -290,6 +306,7 @@ export async function leaveRoom(req, res) {
     if (others.length === 0) {
       await room.deleteOne(); // người cuối cùng rời đi thì xóa phòng
       await Duty.deleteMany({ room: room._id });
+      await Adjustment.deleteMany({ room: room._id });
     } else {
       room.listMember = others;
       await room.save();
@@ -299,6 +316,15 @@ export async function leaveRoom(req, res) {
         assignee: user._id,
         status: "TODO",
         date: { $gte: todayVN() },
+      });
+      // Người rời đi có thể là người duy nhất chưa duyệt điều chỉnh số dư
+      await settlePendingAdjustments(room._id);
+      await notifyRoom(room._id, {
+        type: "ROOM",
+        message: `${user.fullName} đã rời phòng`,
+        self: `Bạn đã rời phòng ${room.roomName}`,
+        link: "/thanh-vien",
+        actor: user._id,
       });
     }
   }
@@ -352,6 +378,22 @@ export async function approveMember(req, res) {
     { _id: userId },
     { roomJoined: roomId, roleInRoom: "MEMBER" },
   );
+  await notify({
+    users: [userId],
+    room: roomId,
+    type: "ROOM",
+    message: `Bạn đã được duyệt vào phòng ${room.roomName}`,
+    link: "/",
+    actor: req.user._id,
+  });
+  await notifyRoom(roomId, {
+    type: "ROOM",
+    message: `${target.fullName} đã vào phòng`,
+    self: `Bạn đã duyệt ${target.fullName} vào phòng`,
+    link: "/thanh-vien",
+    actor: req.user._id,
+    skip: [userId], // người mới vào đã có tin riêng
+  });
 
   return res.json({
     message: "Đã duyệt thành viên",
@@ -367,10 +409,22 @@ export async function rejectMember(req, res) {
     return res.status(400).json({ message: "Mã người dùng không hợp lệ" });
   }
 
-  await Room.updateOne(
-    { _id: roomId },
+  const before = await Room.findOneAndUpdate(
+    { _id: roomId, "pendingMembers.user": userId },
     { $pull: { pendingMembers: { user: userId } } },
   );
+  if (before) {
+    const who = await User.findById(userId).select("fullName");
+    await notify({
+      users: [userId],
+      room: roomId,
+      type: "ROOM",
+      message: `Yêu cầu tham gia phòng ${before.roomName} đã bị từ chối`,
+      link: "/thanh-vien",
+      actor: req.user._id,
+      self: `Bạn đã từ chối yêu cầu tham gia của ${who?.fullName || "một người"}`,
+    });
+  }
   return res.json({
     message: "Đã từ chối yêu cầu",
     room: await loadRoom(roomId, req.user._id),
@@ -394,6 +448,23 @@ export async function transferTreasurer(req, res) {
 
   await User.updateOne({ _id: userId }, { roleInRoom: "TREASURER" });
   await User.updateOne({ _id: req.user._id }, { roleInRoom: "MEMBER" });
+  const next = await User.findById(userId).select("fullName");
+  await notify({
+    users: [userId],
+    room: roomId,
+    type: "ROOM",
+    message: `${req.user.fullName} đã chuyển quyền thủ quỹ cho bạn`,
+    link: "/quy-chung",
+    actor: req.user._id,
+  });
+  await notifyRoom(roomId, {
+    type: "ROOM",
+    message: `${next?.fullName || "Một thành viên"} là thủ quỹ mới của phòng`,
+    self: `Bạn đã chuyển quyền thủ quỹ cho ${next?.fullName || "thành viên khác"}`,
+    link: "/thanh-vien",
+    actor: req.user._id,
+    skip: [userId],
+  });
 
   return res.json({
     message: "Đã chuyển quyền thủ quỹ",

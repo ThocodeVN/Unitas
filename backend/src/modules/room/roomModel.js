@@ -39,6 +39,12 @@ const roomSchema = new mongoose.Schema({
     default: 0,
     min: [0, "Fund balance cannot be negative"],
   },
+  // Phần tiền mặt trong quỹ. Tiền tài khoản = fundBalance - cashBalance
+  cashBalance: {
+    type: Number,
+    default: 0,
+    min: [0, "Cash balance cannot be negative"],
+  },
 });
 
 export default mongoose.model("Room", roomSchema);
